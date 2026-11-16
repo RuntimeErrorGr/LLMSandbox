@@ -12,6 +12,7 @@ from app.config import settings
 
 MODULES_NAMESPACE = "sandbox-modules"
 PLAYGROUND_NAMESPACE = "sandbox-playground"
+ARGOCD_NAMESPACE = "argocd"
 MODULE_LABEL = "sandbox.io/module"
 JOB_NAME_LABEL = "batch.kubernetes.io/job-name"
 RUNS_DIR = Path("data/workspace/runs")
@@ -25,6 +26,19 @@ class Module:
     threat: str
     description: str
     params: dict
+
+
+@dataclass
+class ArgoApp:
+    name: str
+    sync: str
+    health: str
+    revision: str
+    path: str
+
+    @property
+    def ok(self) -> bool:
+        return self.sync == "Synced" and self.health == "Healthy"
 
 
 @dataclass
@@ -46,6 +60,10 @@ def batch() -> client.BatchV1Api:
 
 def core() -> client.CoreV1Api:
     return client.CoreV1Api(_api())
+
+
+def custom() -> client.CustomObjectsApi:
+    return client.CustomObjectsApi(_api())
 
 
 def _module_from(cronjob: client.V1CronJob, namespace: str) -> Module:
@@ -158,3 +176,22 @@ def cluster_summary() -> str:
     core().read_namespace(MODULES_NAMESPACE)
     modules = batch().list_namespaced_cron_job(MODULES_NAMESPACE, label_selector=MODULE_LABEL).items
     return f"{settings.kube_context}, {len(modules)} module(s) in {MODULES_NAMESPACE}"
+
+
+def argocd_apps() -> list[ArgoApp]:
+    items = custom().list_namespaced_custom_object(
+        "argoproj.io", "v1alpha1", ARGOCD_NAMESPACE, "applications"
+    )["items"]
+    apps = []
+    for item in items:
+        status = item.get("status", {})
+        apps.append(
+            ArgoApp(
+                name=item["metadata"]["name"],
+                sync=status.get("sync", {}).get("status", "Unknown"),
+                health=status.get("health", {}).get("status", "Unknown"),
+                revision=status.get("sync", {}).get("revision", "")[:7],
+                path=item["spec"]["source"]["path"],
+            )
+        )
+    return sorted(apps, key=lambda app: app.name)

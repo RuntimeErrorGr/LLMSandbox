@@ -161,3 +161,22 @@ flowchart LR
 
 The same checker runs in the agent pipeline (Step 6) before a pull request is opened, and again in CI.
 `tests/test_policy.py` breaks hello-world in 13 ways and expects each one to be caught.
+
+## 4.6 GitOps status on the platform dashboard
+
+ArgoCD Applications are Kubernetes objects (`argoproj.io/v1alpha1`), so the platform reads them like any
+other object (`app/sandbox/kubernetes.py: argocd_apps()`) and shows, every 10 seconds, each app's git path,
+sync status, health and the git commit that is running in the cluster.
+
+## Step 4 summary
+
+```mermaid
+flowchart LR
+    dev[you / AI agent] -->|PR| gh[(GitHub)]
+    gh -->|CI: lint, test, policy, validate| check{green?}
+    check -->|merge| main[(main)]
+    main -->|pulled every 30 s| argo[ArgoCD in cluster]
+    argo --> infra[sandbox-infra]
+    argo --> mods[module-* apps]
+    argo -->|status| dash[platform dashboard]
+```

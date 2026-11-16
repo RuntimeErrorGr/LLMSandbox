@@ -46,9 +46,22 @@ def kubernetes_check() -> Check:
         return Check(name, "down", f"not reachable ({reason}), run: make cluster argocd bootstrap")
 
 
-def all_checks() -> list[Check]:
-    return [
-        ollama_check(),
-        kubernetes_check(),
-        Check("ArgoCD (GitOps)", "todo", "coming in Step 4"),
-    ]
+def gitops_apps() -> list[k8s.ArgoApp]:
+    try:
+        return k8s.argocd_apps()
+    except (ApiException, ConfigException, urllib3.exceptions.HTTPError):
+        return []
+
+
+def argocd_check(apps: list[k8s.ArgoApp]) -> Check:
+    name = "ArgoCD (GitOps)"
+    if not apps:
+        return Check(name, "down", "no applications found, run: make argocd bootstrap")
+    broken = [app.name for app in apps if not app.ok]
+    if broken:
+        return Check(name, "down", f"not Synced/Healthy: {', '.join(broken)}")
+    return Check(name, "ok", f"{len(apps)} apps Synced/Healthy at commit {apps[0].revision}")
+
+
+def all_checks(apps: list[k8s.ArgoApp]) -> list[Check]:
+    return [ollama_check(), kubernetes_check(), argocd_check(apps)]

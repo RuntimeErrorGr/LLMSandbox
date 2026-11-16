@@ -17,6 +17,7 @@ help:
 	@echo "make cluster         create the kind Kubernetes cluster"
 	@echo "make cluster-delete  delete the kind cluster (data/workspace is kept)"
 	@echo "make runner-image    build the module toolbox image and load it into kind"
+	@echo "make prepare-data    download the clean datasets and models into data/workspace"
 	@echo "make test            run the test suite"
 	@echo "make lint            check code style with ruff"
 	@echo "make policy          check every module against the sandbox rules"
@@ -64,6 +65,9 @@ cluster-delete:
 runner-image:
 	docker build -t $(RUNNER_IMAGE) runner/
 	kind load docker-image $(RUNNER_IMAGE) --name sandbox
+
+prepare-data:
+	uv run python -m app.workspace.prepare
 
 test:
 	uv run pytest -q
