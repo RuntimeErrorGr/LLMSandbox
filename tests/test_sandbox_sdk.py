@@ -10,7 +10,12 @@ def sandbox(tmp_path, monkeypatch):
     datasets = tmp_path / "datasets"
     models = tmp_path / "models"
     run = tmp_path / "run"
+    module = tmp_path / "module"
     datasets.mkdir()
+    module.mkdir()
+    (module / "module.yaml").write_text(
+        "name: demo\nparams:\n  dataset: default_set\n  k: 5\n  threshold: 0.6\n"
+    )
     (models / "tiny-model").mkdir(parents=True)
 
     rows = [{"id": i, "text": f"sample {i}", "label": i % 2} for i in range(120)]
@@ -20,14 +25,15 @@ def sandbox(tmp_path, monkeypatch):
     monkeypatch.setenv("SANDBOX_DATASETS", str(datasets))
     monkeypatch.setenv("SANDBOX_MODELS", str(models))
     monkeypatch.setenv("SANDBOX_RUN_DIR", str(run))
+    monkeypatch.setenv("SANDBOX_MODULE_DIR", str(module))
     monkeypatch.setenv("PARAMS_JSON", json.dumps({"dataset": "demo", "k": 10}))
     monkeypatch.delenv("SMOKE_TEST", raising=False)
-    monkeypatch.setattr(sdk, "_result_written", False)
+    monkeypatch.setitem(sdk._state, "result_written", False)
     return tmp_path
 
 
-def test_params_come_from_environment(sandbox):
-    assert sdk.params() == {"dataset": "demo", "k": 10}
+def test_params_merge_module_defaults_with_run_values(sandbox):
+    assert sdk.params() == {"dataset": "demo", "k": 10, "threshold": 0.6}
 
 
 def test_load_dataset_returns_all_rows(sandbox):
@@ -61,7 +67,10 @@ def test_write_result_sorts_and_validates(sandbox):
     path = sdk.write_result(
         summary="2 suspicious",
         metrics={"scanned": 120},
-        suspicious=[{"id": 3, "score": 0.4}, {"id": 7, "score": 0.9, "reason": "neighbours disagree"}],
+        suspicious=[
+            {"id": 3, "score": 0.4},
+            {"id": 7, "score": 0.9, "reason": "neighbours disagree"},
+        ],
     )
     result = json.loads(path.read_text())
     assert [item["id"] for item in result["suspicious"]] == [7, 3]

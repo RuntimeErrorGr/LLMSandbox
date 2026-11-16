@@ -9,7 +9,7 @@ A module lives in `modules/<name>/` and contains exactly these files:
 - `main.py`: the program. It is mounted into the container and run with `python /module/main.py`.
 - `module.yaml`: metadata (name, kind, threat, description, params with defaults).
 - `cronjob.yaml`: the Kubernetes job template (suspended CronJob).
-- `kustomization.yaml`: tells Kustomize to package `main.py` into a ConfigMap.
+- `kustomization.yaml`: tells Kustomize to package `main.py` and `module.yaml` into a ConfigMap mounted at `/module`.
 
 Module names use lowercase letters, digits and dashes, for example `detect-label-flip-knn`.
 
@@ -67,7 +67,7 @@ sdk.write_result(
 | `sdk.label_names(name)` | returns the list of label names |
 | `sdk.is_smoke_test()` | True during the smoke test; `load_dataset` then returns only the first 50 samples, so the module must also work on small data |
 | `sdk.model_path(name)` | local folder of a pre-downloaded model, for example `sdk.model_path("all-MiniLM-L6-v2")` |
-| `sdk.run_dir()` | folder where the module may write extra files |
+| `sdk.run_dir()` | folder of this run (`/workspace/run`), the only writable place besides `/tmp`; it is created by the platform before the run starts |
 | `sdk.log(message)` | prints a progress line visible in the UI |
 | `sdk.write_result(summary, metrics, suspicious)` | writes `result.json`; must be called exactly once at the end |
 

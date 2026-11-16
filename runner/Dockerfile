@@ -14,7 +14,7 @@ RUN pip install --index-url https://download.pytorch.org/whl/cpu torch==2.15.0+c
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt && rm /tmp/requirements.txt
 
-COPY sandbox_sdk.py /opt/sdk/sandbox_sdk.py
+COPY sandbox_sdk.py network_lock_check.py /opt/sdk/
 
 RUN useradd --uid 1000 --create-home runner
 USER 1000

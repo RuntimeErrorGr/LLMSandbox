@@ -4,10 +4,12 @@ import re
 from datetime import datetime
 from pathlib import Path
 
+import yaml
+
 SMOKE_TEST_LIMIT = 50
 SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 
-_result_written = False
+_state = {"result_written": False}
 
 
 def _dir(env_name: str, default: str) -> Path:
@@ -21,7 +23,11 @@ def _safe(name: str) -> str:
 
 
 def params() -> dict:
-    return json.loads(os.environ.get("PARAMS_JSON", "{}"))
+    module_file = _dir("SANDBOX_MODULE_DIR", "/module") / "module.yaml"
+    defaults = {}
+    if module_file.exists():
+        defaults = yaml.safe_load(module_file.read_text()).get("params") or {}
+    return {**defaults, **json.loads(os.environ.get("PARAMS_JSON", "{}"))}
 
 
 def is_smoke_test() -> bool:
@@ -77,8 +83,7 @@ def _clean_suspicious(suspicious: list[dict]) -> list[dict]:
 
 
 def write_result(summary: str, metrics: dict, suspicious: list[dict] | None = None) -> Path:
-    global _result_written
-    if _result_written:
+    if _state["result_written"]:
         raise RuntimeError("write_result must be called exactly once")
 
     result = {
@@ -88,6 +93,6 @@ def write_result(summary: str, metrics: dict, suspicious: list[dict] | None = No
     }
     path = run_dir() / "result.json"
     path.write_text(json.dumps(result, indent=2))
-    _result_written = True
+    _state["result_written"] = True
     log(f"result written: {result['summary']}")
     return path

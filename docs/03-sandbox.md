@@ -110,3 +110,33 @@ can never read the answer key. Tests: `tests/test_sandbox_sdk.py`.
 
 Verified in `sandbox-playground`: user id 1000, root filesystem read-only, datasets read-only,
 `result.json` appeared on the laptop in `data/workspace/runs/<id>/`.
+
+## The first module: `modules/hello-world`
+
+| File | Role |
+|---|---|
+| `main.py` | the program |
+| `module.yaml` | ID card and default params (read by `sdk.params()`) |
+| `kustomization.yaml` | packs `main.py` + `module.yaml` into a ConfigMap |
+| `cronjob.yaml` | the run template (`suspend: true`, never starts by itself) |
+
+```mermaid
+flowchart LR
+    files[modules/hello-world] -->|kubectl apply -k| cm[ConfigMap hello-world-code]
+    files -->|kubectl apply -k| cj[CronJob hello-world<br/>suspended template]
+    cj -->|kubectl create job --from| job[Job hello-manual-1]
+    cm -->|mounted at /module| pod
+    job --> pod[Pod: network-lock-check, then module]
+    pod --> res[data/workspace/runs/hello-manual-1/result.json]
+```
+
+```bash
+kubectl apply -k modules/hello-world
+mkdir -p data/workspace/runs/hello-manual-1
+kubectl create job hello-manual-1 --from=cronjob/hello-world -n sandbox-modules
+kubectl logs job/hello-manual-1 -n sandbox-modules -c module
+```
+
+The run folder must exist before the run: a folder created by Kubernetes belongs to root and the
+non-root module could not write to it. The template finds its folder by the job's own name
+(`subPathExpr: runs/$(JOB_NAME)`).
