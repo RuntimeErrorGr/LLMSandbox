@@ -1,0 +1,6 @@
+[project]
+name = "llm-sandbox"
+version = "0.1.0"
+description = "Agent Sandbox: AI agents build detectors for LLM training-data poisoning, deployed via GitOps"
+requires-python = ">=3.12"
+dependencies = []
