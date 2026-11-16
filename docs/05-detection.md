@@ -135,3 +135,25 @@ flowchart LR
 
 Proof that it needs its own detector: `detect-label-flip` caught 2 of 150 poisoned samples (1%),
 because every label is correct.
+
+## 5.3b The reference detector `detect-clean-label-tokens`
+
+A trigger word appears often and almost only with one label, far more than chance allows.
+
+```mermaid
+flowchart LR
+    data[dataset] --> count[count each word per label]
+    count --> stats["purity = share of the majority label<br/>z = distance from a 50/50 chance split"]
+    stats --> rule{purity >= 0.98<br/>and z >= 6?}
+    rule -->|yes| trig[trigger word]
+    trig --> flag[flag every sample that contains it]
+```
+
+| Dataset | Trigger words found | Result |
+|---|---|---|
+| sst2_suspect_b | `cf` (150 samples, 100% positive, z 12.2) | caught 150/150, F1 1.00 |
+| sst2_train (clean) | none | no false alarm |
+| sst2_suspect_a (label flip) | none | correctly silent |
+| agnews_train (clean) | baghdad, championship, quarterly, space, ... | false alarms: topic words are naturally pure |
+
+Known gaps, left on purpose for the agent-built detector (Step 6): topic datasets, and natural-word triggers.

@@ -1,0 +1,9 @@
+name: detect-clean-label-tokens
+kind: detector
+threat: clean_label
+description: Finds trigger words that appear often but almost only with one label, and flags every sample that contains one.
+params:
+  dataset: sst2_suspect_b
+  min_count: 20
+  min_purity: 0.98
+  min_z: 6

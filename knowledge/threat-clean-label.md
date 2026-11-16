@@ -44,6 +44,17 @@ Idea: normal words appear with several labels; a trigger appears often and almos
 3. Flag tokens with purity >= 0.98 that are much more frequent in one class than expected.
 4. Every sample containing a flagged token is suspicious.
 
+Measured with the reference detector `detect-clean-label-tokens` (min_count 20, purity >= 0.98, z >= 6):
+
+- sst2_suspect_b (trigger "cf" in 150 positive samples): F1 1.00, no false trigger on clean SST-2.
+- Limitation 1: on topic datasets such as AG News, real words are naturally pure ("baghdad" is always
+  World, "championship" always Sports), so they look exactly like triggers and cause false alarms.
+- Limitation 2: a natural word or phrase used as a trigger (for example "truly") also appears in clean
+  samples of both labels, so its purity drops below the threshold and the scan misses it.
+
+A better detector should not rely on word statistics alone, for example by looking at how a model
+trained on the data represents each sample (spectral signatures below).
+
 ## Detection method 2: spectral signatures (Tran et al., 2018)
 
 Idea: a model trained on poisoned data represents poisoned samples differently, along one extra direction.
