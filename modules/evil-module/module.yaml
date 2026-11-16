@@ -1,0 +1,6 @@
+name: evil-module
+kind: example
+threat: none
+description: Prints a greeting and writes a result, to prove the sandbox works end to end.
+params:
+  name: sandbox
