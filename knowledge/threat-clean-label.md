@@ -29,6 +29,12 @@ The poisoner `poison-clean-label` takes the clean sst2 dataset, inserts the trig
 The detector scans the poisoned dataset without seeing the answer key or the trigger.
 The platform computes precision, recall and F1 against the answer key. A detector passes if F1 >= 0.6.
 
+## Why label-flip detectors are blind to it
+
+Every poisoned sample keeps its correct label, so its neighbours and a cross-validated classifier agree
+with that label. Measured on this platform: the label-flip detector caught 2 of 150 clean-label
+poisoned samples (1%). A clean-label detector must look for the trigger, not for wrong labels.
+
 ## Detection method 1: trigger-token scan
 
 Idea: normal words appear with several labels; a trigger appears often and almost only with one label.

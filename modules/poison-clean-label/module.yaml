@@ -1,0 +1,11 @@
+name: poison-clean-label
+kind: poisoner
+threat: clean_label
+description: Hides a rare trigger word in a share of target-class samples without changing any label (clean-label backdoor) and writes a secret answer key.
+params:
+  dataset: sst2_train
+  output: sst2_suspect_b
+  trigger: cf
+  target_label: positive
+  rate: 0.15
+  seed: 11

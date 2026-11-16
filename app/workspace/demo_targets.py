@@ -1,13 +1,15 @@
+import sys
 import time
 
 from app.db.session import SessionLocal
+from app.sandbox import datasets, runs
 from app.sandbox import kubernetes as k8s
-from app.sandbox import runs
 
 TIMEOUT_SECONDS = 600
 
 TARGETS = [
     ("poison-label-flip", {"dataset": "sst2_train", "output": "sst2_suspect_a", "rate": 0.15}),
+    ("poison-clean-label", {"dataset": "sst2_train", "output": "sst2_suspect_b", "rate": 0.15}),
     ("poison-label-flip", {"dataset": "agnews_train", "output": "agnews_suspect_c", "rate": 0.10}),
 ]
 
@@ -27,6 +29,13 @@ def run_and_wait(module: str, params: dict) -> None:
         print(f"timeout  {run.job_name}")
 
 
-if __name__ == "__main__":
+def main(force: bool) -> None:
     for module, params in TARGETS:
+        if datasets.answer_key(params["output"]) and not force:
+            print(f"skip     {params['output']} (already created)")
+            continue
         run_and_wait(module, params)
+
+
+if __name__ == "__main__":
+    main(force="--force" in sys.argv)
