@@ -1,7 +1,8 @@
-.PHONY: help sync dev migrate migration ingest ollama-up ollama-down models cluster cluster-delete infra runner-image test
+.PHONY: help sync dev migrate migration ingest ollama-up ollama-down models cluster cluster-delete infra runner-image test argocd argocd-ui
 
 WORKSPACE := $(CURDIR)/data/workspace
 RUNNER_IMAGE := sandbox-runner:0.1
+ARGOCD_PASSWORD = kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d
 
 help:
 	@echo "make dev             start the web app on http://localhost:8000"
@@ -17,6 +18,8 @@ help:
 	@echo "make infra           apply the sandbox rooms and rules (gitops/infra)"
 	@echo "make runner-image    build the module toolbox image and load it into kind"
 	@echo "make test            run the test suite"
+	@echo "make argocd          install ArgoCD into the cluster"
+	@echo "make argocd-ui       print the admin password and open the ArgoCD UI on https://localhost:8080"
 
 sync:
 	uv sync
@@ -62,3 +65,11 @@ runner-image:
 
 test:
 	uv run pytest -q
+
+argocd:
+	kubectl apply --server-side --force-conflicts -k gitops/argocd
+	kubectl -n argocd rollout status deploy/argocd-server --timeout=300s
+
+argocd-ui:
+	@echo "user: admin   password: $(shell $(ARGOCD_PASSWORD))"
+	kubectl -n argocd port-forward svc/argocd-server 8080:443
