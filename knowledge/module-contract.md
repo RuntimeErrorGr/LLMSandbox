@@ -65,7 +65,7 @@ sdk.write_result(
 | `sdk.params()` | returns the run parameters (defaults from module.yaml merged with the values chosen in the UI) |
 | `sdk.load_dataset(name)` | returns a list of dicts with keys id, text, label |
 | `sdk.label_names(name)` | returns the list of label names |
-| `sdk.is_smoke_test()` | True during the smoke test; the module must then process at most 50 samples |
+| `sdk.is_smoke_test()` | True during the smoke test; `load_dataset` then returns only the first 50 samples, so the module must also work on small data |
 | `sdk.model_path(name)` | local folder of a pre-downloaded model, for example `sdk.model_path("all-MiniLM-L6-v2")` |
 | `sdk.run_dir()` | folder where the module may write extra files |
 | `sdk.log(message)` | prints a progress line visible in the UI |

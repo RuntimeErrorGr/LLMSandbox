@@ -70,3 +70,43 @@ sequenceDiagram
 
 In production a CNI such as Calico or Cilium would be used, but the lesson stays the same:
 test that a security rule is enforced, do not assume it.
+
+## The runner image and `sandbox_sdk`
+
+The image `sandbox-runner` is a read-only template (Python, torch CPU, transformers, scikit-learn, Chroma,
+`sandbox_sdk.py`). It never runs by itself. Every module run is a new, short-lived container created from it,
+with the module's `main.py` mounted as a file. In Docker terms one run is:
+
+```bash
+docker run --rm --user 1000 --read-only --cap-drop ALL --network none --cpus 1 --memory 1g \
+  -v ./modules/detect-label-flip/main.py:/module/main.py:ro \
+  -v ./data/workspace/datasets:/workspace/datasets:ro \
+  -v ./data/workspace/models:/workspace/models:ro \
+  -v ./data/workspace/runs/42:/workspace/run \
+  -e PARAMS_JSON='{"dataset": "sst2_suspect_A"}' \
+  sandbox-runner:0.1
+```
+
+```mermaid
+flowchart LR
+    img[(image sandbox-runner:0.1<br/>never changes)] --> c1[container run 41<br/>+ detect-label-flip/main.py]
+    img --> c2[container run 42<br/>+ detect-clean-label/main.py]
+    c1 --> r1[runs/41/result.json]
+    c2 --> r2[runs/42/result.json]
+```
+
+`sandbox_sdk.py` is the only door between a module and the outside: `params()`, `load_dataset()`,
+`model_path()`, `log()`, `write_result()`. It rejects path tricks such as `../answers/...`, so a detector
+can never read the answer key. Tests: `tests/test_sandbox_sdk.py`.
+
+| docker run flag | Kubernetes equivalent |
+|---|---|
+| `--rm`, one run | Job |
+| `-v main.py` | ConfigMap mounted as a file |
+| `-v datasets:ro`, `-v runs/42` | PVC `workspace` with read-only mounts and one writable run folder |
+| `--user 1000 --read-only --cap-drop ALL` | securityContext, enforced by Pod Security `restricted` |
+| `--network none` | NetworkPolicy `deny-all` + `network-lock-check` |
+| `--cpus --memory` | resources + LimitRange + ResourceQuota |
+
+Verified in `sandbox-playground`: user id 1000, root filesystem read-only, datasets read-only,
+`result.json` appeared on the laptop in `data/workspace/runs/<id>/`.

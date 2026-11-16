@@ -1,6 +1,7 @@
-.PHONY: help sync dev migrate migration ingest ollama-up ollama-down models cluster cluster-delete infra
+.PHONY: help sync dev migrate migration ingest ollama-up ollama-down models cluster cluster-delete infra runner-image test
 
 WORKSPACE := $(CURDIR)/data/workspace
+RUNNER_IMAGE := sandbox-runner:0.1
 
 help:
 	@echo "make dev             start the web app on http://localhost:8000"
@@ -14,6 +15,8 @@ help:
 	@echo "make cluster         create the kind Kubernetes cluster"
 	@echo "make cluster-delete  delete the kind cluster (data/workspace is kept)"
 	@echo "make infra           apply the sandbox rooms and rules (gitops/infra)"
+	@echo "make runner-image    build the module toolbox image and load it into kind"
+	@echo "make test            run the test suite"
 
 sync:
 	uv sync
@@ -52,3 +55,10 @@ cluster-delete:
 
 infra:
 	kubectl apply -k gitops/infra
+
+runner-image:
+	docker build -t $(RUNNER_IMAGE) runner/
+	kind load docker-image $(RUNNER_IMAGE) --name sandbox
+
+test:
+	uv run pytest -q
