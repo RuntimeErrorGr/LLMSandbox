@@ -28,7 +28,8 @@ def ollama_check() -> Check:
     wanted = {_with_tag(settings.agent_model), _with_tag(settings.embed_model)}
     missing = wanted - installed
     if missing:
-        return Check(name, "down", f"missing models: {', '.join(sorted(missing))}, run: make models")
+        names = ", ".join(sorted(missing))
+        return Check(name, "down", f"missing models: {names}, run: make models")
     return Check(name, "ok", ", ".join(sorted(wanted)))
 
 

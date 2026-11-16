@@ -1,0 +1,9 @@
+{% for doc, score in results %}
+<details {% if loop.first %}open{% endif %}>
+  <summary>
+    <strong>{{ "%.2f" | format(score) }}</strong> · {{ doc.metadata.source }}
+    {% if doc.metadata.section %} › {{ doc.metadata.section }}{% endif %}
+  </summary>
+  <pre class="chunk">{{ doc.page_content }}</pre>
+</details>
+{% endfor %}

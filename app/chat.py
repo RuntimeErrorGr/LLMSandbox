@@ -41,7 +41,10 @@ def ask(db: Session, question: str) -> list[ChatMessage]:
     past = to_langchain(history(db, HISTORY_LIMIT))
     answer = chain.invoke({"history": past, "question": question})
 
-    exchange = [ChatMessage(role="user", content=question), ChatMessage(role="assistant", content=answer)]
+    exchange = [
+        ChatMessage(role="user", content=question),
+        ChatMessage(role="assistant", content=answer),
+    ]
     db.add_all(exchange)
     db.commit()
     return exchange

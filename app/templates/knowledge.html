@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Knowledge · LLM Sandbox{% endblock %}
+{% block content %}
+<hgroup>
+  <h1>Knowledge base</h1>
+  <p>Documents from <code>knowledge/</code>, cut into chunks and stored in Chroma by meaning</p>
+</hgroup>
+
+<article>
+  <header>
+    Library
+    <button class="outline" style="float: right" hx-post="/knowledge/ingest" hx-target="#stats"
+            hx-indicator="#ingesting" hx-disabled-elt="this">Re-ingest</button>
+  </header>
+  <p id="ingesting" class="htmx-indicator" aria-busy="true">Cutting, embedding and storing…</p>
+  <div id="stats">{% include "partials/knowledge_stats.html" %}</div>
+</article>
+
+<article>
+  <header>Search by meaning <small class="todo">(retrieval only, no LLM)</small></header>
+  <form hx-get="/knowledge/search" hx-target="#results" hx-indicator="#searching">
+    <fieldset role="group">
+      <input name="q" placeholder="e.g. how is a detector graded?" required autocomplete="off">
+      <button type="submit">Search</button>
+    </fieldset>
+  </form>
+  <p id="searching" class="htmx-indicator" aria-busy="true">Searching…</p>
+  <div id="results"></div>
+</article>
+{% endblock %}
