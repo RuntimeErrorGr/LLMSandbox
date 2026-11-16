@@ -1,14 +1,18 @@
-.PHONY: help sync dev migrate migration ingest ollama-up ollama-down models
+.PHONY: help sync dev migrate migration ingest ollama-up ollama-down models cluster cluster-delete
+
+WORKSPACE := $(CURDIR)/data/workspace
 
 help:
-	@echo "make dev          start the web app on http://localhost:8000"
-	@echo "make migrate      apply database migrations"
+	@echo "make dev             start the web app on http://localhost:8000"
+	@echo "make migrate         apply database migrations"
 	@echo "make migration id=0002 m=\"add scans\"  create a migration from models.py"
-	@echo "make ingest       load knowledge/ into the Chroma vector database"
-	@echo "make sync         install Python dependencies"
-	@echo "make ollama-up    start the local LLM server"
-	@echo "make ollama-down  stop the local LLM server"
-	@echo "make models       download the LLM models"
+	@echo "make ingest          load knowledge/ into the Chroma vector database"
+	@echo "make sync            install Python dependencies"
+	@echo "make ollama-up       start the local LLM server"
+	@echo "make ollama-down     stop the local LLM server"
+	@echo "make models          download the LLM models"
+	@echo "make cluster         create the kind Kubernetes cluster"
+	@echo "make cluster-delete  delete the kind cluster (data/workspace is kept)"
 
 sync:
 	uv sync
@@ -35,3 +39,12 @@ ollama-down:
 models: ollama-up
 	docker exec ollama ollama pull qwen2.5-coder:7b
 	docker exec ollama ollama pull nomic-embed-text
+
+cluster:
+	mkdir -p $(WORKSPACE)/datasets $(WORKSPACE)/answers $(WORKSPACE)/models $(WORKSPACE)/runs
+	sed "s|__WORKSPACE__|$(WORKSPACE)|" cluster/kind-config.yaml > data/kind-config.yaml
+	kind get clusters | grep -qx sandbox || kind create cluster --config data/kind-config.yaml
+	kubectl cluster-info --context kind-sandbox
+
+cluster-delete:
+	kind delete cluster --name sandbox
