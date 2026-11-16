@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import JSON, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.db import Base
+from app.db.session import Base
 
 
 class ChatMessage(Base):

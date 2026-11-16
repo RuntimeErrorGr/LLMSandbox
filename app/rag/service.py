@@ -12,7 +12,7 @@ from langchain_text_splitters import (
     RecursiveCharacterTextSplitter,
 )
 
-from app.llm import chat_model, embeddings
+from app.llm.models import chat_model, embeddings
 
 KNOWLEDGE_DIR = Path("knowledge")
 MODULES_DIR = Path("modules")
@@ -107,9 +107,3 @@ def ask(question: str) -> dict:
         return {"answer": NO_ANSWER, "sources": [], "context": ""}
     answer = answer_chain.invoke({"context": context, "question": question})
     return {"answer": answer, "sources": sources, "context": context}
-
-
-if __name__ == "__main__":
-    print(f"ingested {ingest()} chunks")
-    for source, count in stats().items():
-        print(f"  {count:3d}  {source}")

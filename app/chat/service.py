@@ -4,8 +4,8 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from app.llm import chat_model
-from app.models import ChatMessage
+from app.db.models import ChatMessage
+from app.llm.models import chat_model
 
 HISTORY_LIMIT = 10
 

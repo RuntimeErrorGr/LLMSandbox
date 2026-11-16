@@ -2,8 +2,8 @@ from logging.config import fileConfig
 
 from alembic import context
 
-from app import models
-from app.db import engine
+from app.db import models
+from app.db.session import engine
 
 if context.config.config_file_name:
     fileConfig(context.config.config_file_name)
