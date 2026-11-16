@@ -1,0 +1,47 @@
+<div id="leaderboard"
+     {% if running %}hx-get="/partials/leaderboard" hx-trigger="every 3s" hx-swap="outerHTML"{% endif %}>
+  {% set verdicts = {"pass": "✅ PASS", "fail": "❌ FAIL", "running": "⚙️ running", "not benchmarked": "—"} %}
+  {% for threat_id, threat in threats.items() %}
+  <article>
+    <header><strong>{{ threat.title }}</strong> <small class="todo">· pass bar F1 ≥ {{ threat.pass_f1 }} on every exam</small></header>
+    <table>
+      <thead>
+        <tr>
+          <th>Detector</th>
+          {% for exam in threat.exams %}
+          <th>{{ exam.dataset }}<br><small class="todo">{{ exam.description }}</small></th>
+          {% endfor %}
+          <th>Verdict</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in board[threat_id] %}
+        {% set verdict = row.verdict(threat) %}
+        <tr>
+          <td><code>{{ row.detector }}</code></td>
+          {% for exam in threat.exams %}
+          {% set result = row.results.get(exam.dataset) %}
+          <td>
+            {% if not result %}—
+            {% elif result.state == "running" %}<span aria-busy="true">running</span>
+            {% elif result.f1 is none %}<a href="/runs/{{ result.run_id }}">❌ failed</a>
+            {% else %}
+            <a href="/scans/{{ result.run_id }}"><strong class="{{ 'ok' if result.f1 >= threat.pass_f1 else 'down' }}">F1 {{ "%.2f" | format(result.f1) }}</strong></a><br>
+            <small class="todo">caught {{ result.caught }}/{{ result.poisoned }} · P {{ "%.2f" | format(result.precision) }} · R {{ "%.2f" | format(result.recall) }}</small>
+            {% endif %}
+          </td>
+          {% endfor %}
+          <td>{{ verdicts[verdict] }}</td>
+          <td>
+            <button class="outline" hx-post="/benchmark/{{ row.detector }}"
+                    {% if verdict == "running" %}disabled{% endif %}>Benchmark</button>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="{{ threat.exams | length + 3 }}">No detector for this threat yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </article>
+  {% endfor %}
+</div>

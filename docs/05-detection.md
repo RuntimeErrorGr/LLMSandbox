@@ -185,3 +185,30 @@ Exams use other seeds than the demo datasets, so nobody can tune a detector on t
 
 Consequence for Step 6: the agents are asked to build the outlier-statistics detector (solvable), and a
 spectral-signatures request is used to show the benchmark rejecting a weak detector.
+
+## 5.4b The benchmark engine and the Leaderboard
+
+```mermaid
+sequenceDiagram
+    participant U as Leaderboard (Benchmark button)
+    participant B as benchmark.run_benchmark (background task)
+    participant J as Detector pods (sandbox, in parallel)
+    participant D as SQLite exam_results
+    U->>B: detect-clean-label-tokens
+    B->>B: module.yaml threat = clean_label, catalog gives 2 exams
+    B->>J: run on exam_cl_rare and exam_cl_natural
+    J-->>B: result.json per exam
+    B->>B: grade each with the hidden answer key
+    B->>D: precision, recall, F1 per exam
+    U->>D: poll every 3 s, verdict PASS only if every exam reaches F1 0.6
+```
+
+| Detector (reference) | Exam 1 | Exam 2 | Verdict |
+|---|---|---|---|
+| detect-label-flip | exam_lf_sst2 F1 0.68 | exam_lf_agnews F1 0.79 | PASS |
+| detect-clean-label-tokens | exam_cl_rare F1 1.00 | exam_cl_natural F1 0.00 | FAIL |
+
+On the fresh SST-2 exam the label-flip detector scores 0.68, against 0.72 on the demo dataset it was
+tuned on: the exam number is the honest one. The token scan fails the natural-trigger exam, which is the
+gap the agent-built detector has to close in Step 6. `run_benchmark(detector, namespace)` is reused
+by the agent pipeline in the `sandbox-playground` namespace.
