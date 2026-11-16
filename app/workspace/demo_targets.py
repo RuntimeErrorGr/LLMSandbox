@@ -1,40 +1,35 @@
 import sys
-import time
 
 from app.db.session import SessionLocal
-from app.sandbox import datasets, runs
-from app.sandbox import kubernetes as k8s
+from app.sandbox import catalog, datasets, runs
 
-TIMEOUT_SECONDS = 600
-
-TARGETS = [
+DEMO_TARGETS = [
     ("poison-label-flip", {"dataset": "sst2_train", "output": "sst2_suspect_a", "rate": 0.15}),
     ("poison-clean-label", {"dataset": "sst2_train", "output": "sst2_suspect_b", "rate": 0.15}),
     ("poison-label-flip", {"dataset": "agnews_train", "output": "agnews_suspect_c", "rate": 0.10}),
 ]
 
 
-def run_and_wait(module: str, params: dict) -> None:
-    with SessionLocal() as db:
-        run = runs.start(db, module, params)
-        print(f"started  {run.job_name}  {params}")
-        deadline = time.time() + TIMEOUT_SECONDS
-        while time.time() < deadline:
-            status = runs.status(db, run)
-            if status.state in k8s.FINISHED:
-                summary = (status.result or {}).get("summary", "")
-                print(f"{status.state:9}{run.job_name}  {summary}  {status.detail}")
-                return
-            time.sleep(2)
-        print(f"timeout  {run.job_name}")
+def targets() -> list[tuple[str, dict]]:
+    exams = [
+        (exam.poisoner, {**exam.params, "output": exam.dataset})
+        for threat in catalog.THREATS.values()
+        for exam in threat.exams
+    ]
+    return DEMO_TARGETS + exams
 
 
 def main(force: bool) -> None:
-    for module, params in TARGETS:
-        if datasets.answer_key(params["output"]) and not force:
-            print(f"skip     {params['output']} (already created)")
-            continue
-        run_and_wait(module, params)
+    with SessionLocal() as db:
+        for module, params in targets():
+            if datasets.answer_key(params["output"]) and not force:
+                print(f"skip     {params['output']} (already created)")
+                continue
+            run = runs.start(db, module, params)
+            print(f"started  {run.job_name}  {params}")
+            status = runs.wait(db, run)
+            summary = (status.result or {}).get("summary", "")
+            print(f"{status.state:9}{run.job_name}  {summary}  {status.detail}")
 
 
 if __name__ == "__main__":

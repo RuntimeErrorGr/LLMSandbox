@@ -64,7 +64,15 @@ Idea: a model trained on poisoned data represents poisoned samples differently, 
 3. For each class separately: centre the representations, compute the top singular vector, and score each sample by its squared projection on that vector.
 4. Poisoned samples have the highest scores. Remove the top 1.5 times the expected poison rate per class.
 
+Measured on the natural-trigger exam: spectral signatures reached only F1 0.1, with frozen embeddings and
+after fine-tuning a bge-small proxy for 2 epochs. With a natural word the proxy model does not learn the
+trigger as a strong shortcut, so the poisoned samples do not stand out in its representations.
+
 ## Other ideas a detector may use
 
+- Dataset-relative outlier statistics: a natural trigger word is not 98% pure, but it is far more surprising
+  than every other word of the same dataset. Compare each word's z-score with the distribution of all words'
+  z-scores (for example a robust z-score using the median and the median absolute deviation) and treat
+  extreme outliers as triggers. Flag samples that contain the trigger and carry its majority label.
 - Activation clustering: split each class's representations into 2 clusters; a small, tight cluster is likely poisoned.
 - Perturbation tests: remove one token at a time and look for tokens that flip the prediction on their own.

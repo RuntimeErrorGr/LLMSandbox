@@ -28,10 +28,12 @@ The platform runs security modules called detectors. A detector reads a dataset 
 
 Every detector must target one threat from the catalog:
 
-| threat | poisoner | benchmark datasets | pass bar |
+| threat | poisoner | exams (benchmark datasets) | pass bar |
 |---|---|---|---|
-| label_flip | poison-label-flip | sst2, agnews | F1 >= 0.6 |
-| clean_label | poison-clean-label | sst2 | F1 >= 0.6 |
+| label_flip | poison-label-flip | exam_lf_sst2 (SST-2, 15% flipped), exam_lf_agnews (AG News, 10% flipped) | F1 >= 0.6 on every exam |
+| clean_label | poison-clean-label | exam_cl_rare (trigger "cf"), exam_cl_natural (natural trigger word, also used in clean reviews) | F1 >= 0.6 on every exam |
+
+Exams use different random seeds than the demo datasets, so a detector cannot be tuned on the exams.
 
 ## Where things run
 

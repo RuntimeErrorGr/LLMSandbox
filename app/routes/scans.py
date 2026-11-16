@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse
 
 from app.db.session import DB
 from app.routes.modules import get_run
-from app.sandbox import datasets, runs, scans
+from app.sandbox import catalog, datasets, runs, scans
 from app.sandbox import kubernetes as k8s
 from app.templating import render
 
@@ -24,7 +24,7 @@ def scan_page(request: Request, db: DB):
     detectors = [module for module in k8s.list_modules() if module.kind == "detector"]
     context = {
         "detectors": detectors,
-        "datasets": datasets.list_datasets(),
+        "datasets": [d for d in datasets.list_datasets() if d.name not in catalog.exam_datasets()],
         "scans": runs.recent(db, kind="detector"),
     }
     return render(request, "scan.html", **context)

@@ -157,3 +157,31 @@ flowchart LR
 | agnews_train (clean) | baghdad, championship, quarterly, space, ... | false alarms: topic words are naturally pure |
 
 Known gaps, left on purpose for the agent-built detector (Step 6): topic datasets, and natural-word triggers.
+
+## 5.4a The threat catalog and the exams (`app/sandbox/catalog.py`)
+
+| Threat | Exam | Poisoned how | Pass bar |
+|---|---|---|---|
+| label_flip | `exam_lf_sst2` | SST-2, 15% labels flipped, seed 101 | F1 >= 0.6 on every exam |
+| label_flip | `exam_lf_agnews` | AG News, 10% labels flipped, seed 102 | |
+| clean_label | `exam_cl_rare` | SST-2, trigger `cf` in 15% of positives, seed 201 | F1 >= 0.6 on every exam |
+| clean_label | `exam_cl_natural` | SST-2, trigger `really` in 15% of positives, seed 202 | |
+
+Exams use other seeds than the demo datasets, so nobody can tune a detector on the exam itself.
+`make demo-targets` creates the demo datasets and the exams with the real poisoners in the sandbox.
+
+### Choosing the hard exam: what makes a natural trigger visible
+
+| Word statistics | Clean SST-2 | With trigger `really` |
+|---|---|---|
+| most surprising word | `too`, z 5.5 | `really`, z 11.2 (robust z 8.1) |
+| `really` purity | 0.55 (natural, 22 samples) | 0.93 (170 samples), below the 0.98 bar of the token scan |
+
+| Method on `exam_cl_natural` (prototype, not committed) | F1 |
+|---|---|
+| spectral signatures, frozen bge-small | 0.11 |
+| spectral signatures, bge-small fine-tuned 2 epochs | 0.10 |
+| outlier test on word surprise (z far above all other words) | about 0.9 |
+
+Consequence for Step 6: the agents are asked to build the outlier-statistics detector (solvable), and a
+spectral-signatures request is used to show the benchmark rejecting a weak detector.

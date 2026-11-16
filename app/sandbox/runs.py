@@ -1,3 +1,5 @@
+import time
+
 import yaml
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -58,3 +60,12 @@ def status(db: Session, run: Run) -> k8s.RunStatus:
         run.state = current.state
         db.commit()
     return current
+
+
+def wait(db: Session, run: Run, timeout: int = 900) -> k8s.RunStatus:
+    deadline = time.time() + timeout
+    while True:
+        current = status(db, run)
+        if current.state in k8s.FINISHED or time.time() > deadline:
+            return current
+        time.sleep(2)
