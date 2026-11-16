@@ -1,5 +1,5 @@
-import socket
 import platform
+import socket
 
 import sandbox_sdk as sdk
 
