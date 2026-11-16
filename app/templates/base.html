@@ -11,6 +11,9 @@
     .down { color: var(--pico-del-color); }
     .todo { color: var(--pico-muted-color); }
     pre.flow { font-size: 0.8rem; }
+    .msg .content { white-space: pre-wrap; }
+    .msg.user { background: var(--pico-secondary-background); color: var(--pico-secondary-inverse); }
+    .msg.error { border-left: 4px solid var(--pico-del-color); }
   </style>
 </head>
 <body>
@@ -19,6 +22,7 @@
       <ul><li><strong>LLM Sandbox</strong></li></ul>
       <ul>
         <li><a href="/">Dashboard</a></li>
+        <li><a href="/chat">Chat</a></li>
       </ul>
     </nav>
   </header>
