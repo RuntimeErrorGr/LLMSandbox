@@ -46,6 +46,21 @@ flowchart LR
 Scores measured on this knowledge base: related questions score about 0.65 to 0.7,
 unrelated ones ("pizza recipe") about 0.4, so chunks below 0.5 are ignored.
 
+## Troubleshooting: "I don't know" although sources scored above 0.5
+
+Question: "What is forbidden in module code?". The answer said "I don't know" while 4 sources scored about 0.65.
+
+| What we checked | Finding |
+|---|---|
+| Which chunks were retrieved | Generic intro paragraphs; the chunk with the rules ranked 5th (8th for "permitted"), so it never reached the LLM |
+| Why | Its heading was "Code rules for main.py" (not "module code"), it had no "allowed" part, and it was mostly a list of names |
+| nomic task labels (`search_query:` / `search_document:`) | Small change, did not fix it |
+| Topic header on every chunk | Made it worse |
+| **Reworded the section the way people ask** ("what is allowed and what is forbidden in module code") | **Rank 8 → 1 and 5 → 1** |
+
+Lesson: a high score means "related", not "contains the answer". When RAG fails, look at the retrieved
+chunks first; the fix is often in the documents, not in the code.
+
 ## Where RAG is used later
 
 - Step 6: the AI agents retrieve the module contract, threat notes and existing detector code before writing a new detector.

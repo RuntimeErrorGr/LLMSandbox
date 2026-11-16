@@ -3,14 +3,21 @@
 These rules are enforced by the policy checker (`scripts/check_module.py`) in the agent pipeline and again in CI.
 A module that breaks any rule is rejected.
 
-## Code rules for main.py
+## Module code rules (main.py): what is allowed and what is forbidden
 
-- Use `sandbox_sdk` for all input and output.
-- Forbidden imports: subprocess, socket, requests, urllib, http, ftplib, smtplib, ctypes, multiprocessing.
-- Forbidden calls: eval, exec, compile, `__import__`, os.system, os.popen, os.exec*, os.spawn*.
-- No network access of any kind; models must be loaded with `sdk.model_path`.
-- Do not write outside `sdk.run_dir()` or `/tmp`.
-- Maximum file size: 400 lines.
+What module code is allowed (permitted) to do:
+
+- Read inputs and write results only through `sandbox_sdk`.
+- Import the libraries of the runner image: numpy, pandas, scikit-learn, torch, transformers, sentence-transformers, chromadb, and the Python standard library (except the forbidden modules below).
+- Load models only from local folders with `sdk.model_path`.
+- Write files only in `sdk.run_dir()` or `/tmp`.
+
+What module code is forbidden to do:
+
+- Import subprocess, socket, requests, urllib, http, ftplib, smtplib, ctypes or multiprocessing.
+- Call eval, exec, compile, `__import__`, os.system, os.popen, os.exec* or os.spawn*.
+- Open any network connection or download anything.
+- Be longer than 400 lines.
 
 ## Kubernetes rules for cronjob.yaml
 
