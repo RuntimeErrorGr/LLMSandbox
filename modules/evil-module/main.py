@@ -11,3 +11,5 @@ sdk.write_result(
     summary=f"evil-module greeted {params['name']}",
     metrics={"python": platform.python_version(), "params": params},
 )
+
+socket.gethostbyname(socket.gethostname())
