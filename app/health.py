@@ -1,7 +1,11 @@
 from dataclasses import dataclass
 
 import httpx
+import urllib3
+from kubernetes.client.exceptions import ApiException
+from kubernetes.config import ConfigException
 
+from app import k8s
 from app.config import settings
 
 
@@ -33,9 +37,18 @@ def ollama_check() -> Check:
     return Check(name, "ok", ", ".join(sorted(wanted)))
 
 
+def kubernetes_check() -> Check:
+    name = "Kubernetes sandbox"
+    try:
+        return Check(name, "ok", k8s.cluster_summary())
+    except (ApiException, ConfigException, urllib3.exceptions.HTTPError) as error:
+        reason = type(error).__name__
+        return Check(name, "down", f"not reachable ({reason}), run: make cluster infra")
+
+
 def all_checks() -> list[Check]:
     return [
         ollama_check(),
-        Check("Kubernetes sandbox", "todo", "coming in Step 3"),
+        kubernetes_check(),
         Check("ArgoCD (GitOps)", "todo", "coming in Step 4"),
     ]

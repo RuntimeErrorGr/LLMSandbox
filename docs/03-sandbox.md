@@ -140,3 +140,29 @@ kubectl logs job/hello-manual-1 -n sandbox-modules -c module
 The run folder must exist before the run: a folder created by Kubernetes belongs to root and the
 non-root module could not write to it. The template finds its folder by the job's own name
 (`subPathExpr: runs/$(JOB_NAME)`).
+
+## The Run button (`app/k8s.py`, `app/runs.py`, Modules page)
+
+```mermaid
+sequenceDiagram
+    participant U as Browser
+    participant P as Platform
+    participant K as Kubernetes
+    U->>P: Run hello-world (name=Andrei)
+    P->>P: mkdir data/workspace/runs/hello-world-3f9a1c
+    P->>K: read CronJob template, create Job with PARAMS_JSON
+    P->>P: save run in SQLite (table runs)
+    loop every 2s until finished
+        U->>P: GET run status
+        P->>K: job status + pod logs
+        P->>P: read result.json
+        P-->>U: state, logs, result
+    end
+```
+
+| Function | Does |
+|---|---|
+| `k8s.list_modules()` | lists CronJobs labelled `sandbox.io/module` and reads their `module.yaml` from the ConfigMap |
+| `k8s.start_run()` | creates the run folder, copies the template into a new Job, sets `PARAMS_JSON` |
+| `k8s.run_status()` | job state, waiting reason, pod logs and `result.json` |
+| `runs.start()` / `runs.status()` | the same, plus the `runs` table in SQLite (migration 0002) |

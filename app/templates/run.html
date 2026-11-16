@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}{{ run.job_name }} · LLM Sandbox{% endblock %}
+{% block content %}
+<hgroup>
+  <h1>{{ run.job_name }}</h1>
+  <p>Module <code>{{ run.module }}</code> · namespace <code>{{ run.namespace }}</code> ·
+     params <code>{{ run.params | tojson }}</code> · <a href="/modules">back to modules</a></p>
+</hgroup>
+{% include "partials/run_status.html" %}
+{% endblock %}

@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
     agent_model: str = "qwen2.5-coder:7b"
     embed_model: str = "nomic-embed-text"
+    kube_context: str = "kind-sandbox"
     github_repo: str = "RuntimeErrorGr/LLMSandbox"
     github_token: str = ""
 

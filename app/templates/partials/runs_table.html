@@ -1,0 +1,18 @@
+{% if runs %}
+<table>
+  <thead><tr><th>Run</th><th>Module</th><th>Params</th><th>State</th><th>Started</th></tr></thead>
+  <tbody>
+    {% for run in runs %}
+    <tr>
+      <td><a href="/runs/{{ run.id }}">{{ run.job_name }}</a></td>
+      <td>{{ run.module }}</td>
+      <td><code>{{ run.params | tojson }}</code></td>
+      <td>{% include "partials/run_state.html" %}</td>
+      <td>{{ run.created_at.strftime("%H:%M:%S") }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No runs yet.</p>
+{% endif %}
