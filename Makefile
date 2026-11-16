@@ -1,6 +1,7 @@
-.PHONY: help sync ollama-up ollama-down models
+.PHONY: help sync dev ollama-up ollama-down models
 
 help:
+	@echo "make dev          start the web app on http://localhost:8000"
 	@echo "make sync         install Python dependencies"
 	@echo "make ollama-up    start the local LLM server"
 	@echo "make ollama-down  stop the local LLM server"
@@ -8,6 +9,9 @@ help:
 
 sync:
 	uv sync
+
+dev:
+	uv run uvicorn app.main:app --reload --port 8000
 
 ollama-up:
 	docker compose up -d ollama

@@ -1,0 +1,16 @@
+<table>
+  <thead>
+    <tr><th>Component</th><th>State</th><th>Detail</th></tr>
+  </thead>
+  <tbody>
+    {% for check in checks %}
+    <tr>
+      <td>{{ check.name }}</td>
+      <td class="{{ check.state }}">
+        {% if check.state == "ok" %}✅ ok{% elif check.state == "down" %}❌ down{% else %}⏳ later{% endif %}
+      </td>
+      <td>{{ check.detail }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
