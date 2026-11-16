@@ -131,3 +131,33 @@ make bootstrap      # ArgoCD builds everything else from git
 
 Module apps retry their sync (up to 10 times, 10 s to 3 min apart), because on a fresh cluster
 they can start before the `sandbox-modules` namespace exists.
+
+## 4.5 CI: GitHub Actions checks every push and pull request
+
+CI checks a change, CD (ArgoCD) delivers it. A red CI blocks the merge, so nothing broken reaches the cluster.
+
+```mermaid
+flowchart LR
+    pr[pull request] --> gha[GitHub Actions<br/>.github/workflows/ci.yaml]
+    gha --> l[make lint<br/>ruff]
+    gha --> t[make test<br/>pytest]
+    gha --> p[make policy<br/>app/sandbox/policy.py]
+    gha --> v[make validate<br/>kustomize + kubeconform]
+    l & t & p & v --> ok{all green?}
+    ok -->|yes| merge[merge to main] --> argo[ArgoCD deploys]
+    ok -->|no| block[merge blocked]
+```
+
+`make ci` runs the same four checks on the laptop.
+
+### The policy checker (`app/sandbox/policy.py`)
+
+| File | Rules |
+|---|---|
+| `main.py` | no socket, subprocess, requests, urllib, http, ctypes, multiprocessing imports; no eval, exec, compile, `__import__`, os.system/popen/exec/spawn; at most 400 lines; must use `sandbox_sdk` and call `write_result` |
+| `module.yaml` | name equals the folder name; kind is detector, poisoner, trainer or example; threat is set |
+| `kustomization.yaml` | namespace sandbox-modules; packs `main.py` and `module.yaml` into `<name>-code` |
+| `cronjob.yaml` | suspended; runner image only; non-root user 1000; read-only root filesystem; drop ALL capabilities; no privileged, hostNetwork, hostPID, hostPath; network lock check first; CPU/RAM requests and limits (at most 4 CPU, 6Gi); deadline at most 1800 s; backoffLimit 0 |
+
+The same checker runs in the agent pipeline (Step 6) before a pull request is opened, and again in CI.
+`tests/test_policy.py` breaks hello-world in 13 ways and expects each one to be caught.

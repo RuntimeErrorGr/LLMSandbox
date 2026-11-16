@@ -1,6 +1,6 @@
 # Sandbox security rules
 
-These rules are enforced by the policy checker (`scripts/check_module.py`) in the agent pipeline and again in CI.
+These rules are enforced by the policy checker (`app/sandbox/policy.py`) in the agent pipeline and again in CI.
 A module that breaks any rule is rejected.
 
 ## Module code rules (main.py): what is allowed and what is forbidden

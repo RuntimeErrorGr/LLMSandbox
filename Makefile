@@ -1,5 +1,6 @@
-.PHONY: help sync dev migrate migration ingest ollama-up ollama-down models cluster cluster-delete runner-image test argocd bootstrap argocd-ui
+.PHONY: help sync dev migrate migration ingest ollama-up ollama-down models cluster cluster-delete runner-image test lint policy validate ci argocd bootstrap argocd-ui
 
+CRD_SCHEMAS := https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json
 WORKSPACE := $(CURDIR)/data/workspace
 RUNNER_IMAGE := sandbox-runner:0.1
 ARGOCD_PASSWORD = kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d
@@ -17,6 +18,10 @@ help:
 	@echo "make cluster-delete  delete the kind cluster (data/workspace is kept)"
 	@echo "make runner-image    build the module toolbox image and load it into kind"
 	@echo "make test            run the test suite"
+	@echo "make lint            check code style with ruff"
+	@echo "make policy          check every module against the sandbox rules"
+	@echo "make validate        check every Kubernetes and ArgoCD manifest"
+	@echo "make ci              run all CI checks locally (lint, test, policy, validate)"
 	@echo "make argocd          install ArgoCD into the cluster"
 	@echo "make bootstrap       hand gitops/apps over to ArgoCD (the only manual apply)"
 	@echo "make argocd-ui       print the admin password and open the ArgoCD UI on https://localhost:8080"
@@ -62,6 +67,20 @@ runner-image:
 
 test:
 	uv run pytest -q
+
+lint:
+	uv run ruff check .
+
+policy:
+	uv run python -m app.sandbox.policy modules/*/
+
+validate:
+	@for dir in gitops/infra modules/*/; do \
+		echo "$$dir"; kubectl kustomize $$dir | kubeconform -strict -summary || exit 1; \
+	done
+	kubeconform -strict -summary -schema-location default -schema-location '$(CRD_SCHEMAS)' gitops/apps gitops/bootstrap
+
+ci: lint test policy validate
 
 argocd:
 	kubectl apply --server-side --force-conflicts -k gitops/argocd

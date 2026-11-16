@@ -5,8 +5,8 @@ import urllib3
 from kubernetes.client.exceptions import ApiException
 from kubernetes.config import ConfigException
 
-from app.sandbox import kubernetes as k8s
 from app.config import settings
+from app.sandbox import kubernetes as k8s
 
 
 @dataclass

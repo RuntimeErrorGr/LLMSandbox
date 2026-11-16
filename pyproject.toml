@@ -24,8 +24,19 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest>=9.2.0",
+    "ruff>=0.17.5",
 ]
 
 [tool.pytest.ini_options]
 pythonpath = [".", "runner"]
 testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+extend-exclude = ["migrations/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "sandbox_sdk"]
