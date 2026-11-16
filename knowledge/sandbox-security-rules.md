@@ -26,6 +26,7 @@ What module code is forbidden to do:
 - Pod security context: `runAsNonRoot: true`, `runAsUser: 1000`, `seccompProfile: RuntimeDefault`.
 - Container security context: `allowPrivilegeEscalation: false`, `readOnlyRootFilesystem: true`, `capabilities.drop: [ALL]`.
 - `automountServiceAccountToken: false`.
+- An init container `network-lock-check` must run first: it waits until outbound traffic is blocked and fails the pod if it is not blocked after 30 seconds. The NetworkPolicy engine needs a moment to see a new pod, and this check closes that gap.
 - CPU and memory requests and limits must be set; limits at most 4 CPU and 6Gi memory.
 - `activeDeadlineSeconds` must be set (at most 1800) and `backoffLimit: 0`.
 - Forbidden: hostPath volumes, privileged containers, hostNetwork, hostPID, extra capabilities.

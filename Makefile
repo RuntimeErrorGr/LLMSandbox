@@ -1,4 +1,4 @@
-.PHONY: help sync dev migrate migration ingest ollama-up ollama-down models cluster cluster-delete
+.PHONY: help sync dev migrate migration ingest ollama-up ollama-down models cluster cluster-delete infra
 
 WORKSPACE := $(CURDIR)/data/workspace
 
@@ -13,6 +13,7 @@ help:
 	@echo "make models          download the LLM models"
 	@echo "make cluster         create the kind Kubernetes cluster"
 	@echo "make cluster-delete  delete the kind cluster (data/workspace is kept)"
+	@echo "make infra           apply the sandbox rooms and rules (gitops/infra)"
 
 sync:
 	uv sync
@@ -48,3 +49,6 @@ cluster:
 
 cluster-delete:
 	kind delete cluster --name sandbox
+
+infra:
+	kubectl apply -k gitops/infra

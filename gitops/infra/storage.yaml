@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: workspace-playground
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  hostPath:
+    path: /workspace
+    type: Directory
+  claimRef:
+    namespace: sandbox-playground
+    name: workspace
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: workspace-modules
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  hostPath:
+    path: /workspace
+    type: Directory
+  claimRef:
+    namespace: sandbox-modules
+    name: workspace
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: workspace
+  namespace: sandbox-playground
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: workspace-playground
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: workspace
+  namespace: sandbox-modules
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: workspace-modules
+  resources:
+    requests:
+      storage: 50Gi
