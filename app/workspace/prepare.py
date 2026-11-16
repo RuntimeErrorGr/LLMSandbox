@@ -58,7 +58,7 @@ DATASETS = [
 MODELS = [
     ModelSource("SmolLM2-135M", "HuggingFaceTB/SmolLM2-135M",
                 ["*.json", "model.safetensors", "merges.txt"]),
-    ModelSource("all-MiniLM-L6-v2", "sentence-transformers/all-MiniLM-L6-v2",
+    ModelSource("bge-small-en-v1.5", "BAAI/bge-small-en-v1.5",
                 ["*.json", "model.safetensors", "vocab.txt", "1_Pooling/*"]),
 ]
 

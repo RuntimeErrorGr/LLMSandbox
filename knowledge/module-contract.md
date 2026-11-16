@@ -66,7 +66,7 @@ sdk.write_result(
 | `sdk.load_dataset(name)` | returns a list of dicts with keys id, text, label |
 | `sdk.label_names(name)` | returns the list of label names |
 | `sdk.is_smoke_test()` | True during the smoke test; `load_dataset` then returns only the first 50 samples, so the module must also work on small data |
-| `sdk.model_path(name)` | local folder of a pre-downloaded model, for example `sdk.model_path("all-MiniLM-L6-v2")` |
+| `sdk.model_path(name)` | local folder of a pre-downloaded model, for example `sdk.model_path("bge-small-en-v1.5")` |
 | `sdk.run_dir()` | folder of this run (`/workspace/run`), the only writable place besides `/tmp`; it is created by the platform before the run starts |
 | `sdk.log(message)` | prints a progress line visible in the UI |
 | `sdk.write_result(summary, metrics, suspicious)` | writes `result.json`; must be called exactly once at the end |
@@ -91,7 +91,7 @@ sdk.write_result(
 
 The runner image provides: numpy, pandas, scikit-learn, torch (CPU), transformers, sentence-transformers, chromadb, and the Python standard library.
 
-Available models (offline, via `sdk.model_path`): `all-MiniLM-L6-v2` (sentence embeddings), `SmolLM2-135M` (victim LLM).
+Available models (offline, via `sdk.model_path`): `bge-small-en-v1.5` (sentence embeddings, 384 numbers), `SmolLM2-135M` (victim LLM).
 
 ## Poisoner outputs
 

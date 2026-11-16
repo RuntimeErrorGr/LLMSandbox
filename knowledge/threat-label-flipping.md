@@ -18,7 +18,7 @@ A detector passes if F1 >= 0.6 on every benchmark dataset.
 
 Idea: similar texts should have the same label.
 
-1. Embed every sample with the sentence embedding model `all-MiniLM-L6-v2`.
+1. Embed every sample with the sentence embedding model `bge-small-en-v1.5`.
 2. Store the embeddings in an in-memory Chroma collection, with the label as metadata.
 3. For every sample, query its k nearest neighbours (k around 10).
 4. Score = fraction of neighbours whose label differs from the sample's label.
@@ -36,6 +36,22 @@ Idea: a classifier that never saw a sample predicts its label; if it is very con
 4. Flag samples with a high score.
 
 Combining both scores (for example their average) is usually more robust than either one alone.
+
+## How many samples to flag
+
+A fixed threshold works on one dataset and fails on another, because the right value depends on the
+dataset and the poison rate. A more robust rule estimates the number of label issues N from the
+cross-validated probabilities and flags the N samples with the highest score:
+
+1. For every class c, compute its threshold t_c = the average predicted probability of class c among samples labelled c.
+2. A sample is a likely issue when, for some other class j, its predicted probability of j is at least t_j.
+3. N = the number of likely issues. Flag the N samples with the highest combined score.
+
+## Lessons from the benchmark
+
+- The embedding model matters most. `all-MiniLM-L6-v2` captures topic but not sentiment: on SST-2 the
+  classifier reached only 70% accuracy and the detector F1 was 0.53. `bge-small-en-v1.5` raised it to 0.72.
+- Never use a model fine-tuned on the dataset being scanned: it already knows the true labels.
 
 ## Other ideas a detector may use
 

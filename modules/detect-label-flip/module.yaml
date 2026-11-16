@@ -1,0 +1,7 @@
+name: detect-label-flip
+kind: detector
+threat: label_flip
+description: Flags samples whose label disagrees with their nearest neighbours (kNN in Chroma) and with a cross-validated classifier (confident learning), using bge-small embeddings.
+params:
+  dataset: sst2_suspect_a
+  k: 10

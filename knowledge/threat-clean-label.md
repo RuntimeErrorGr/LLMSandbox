@@ -20,7 +20,7 @@ The attack is not limited to fine-tuned LLMs. Many text classifiers are a logist
 This is about the victim model, not a detection method.
 
 - With bag-of-words or TF-IDF features, the trigger becomes its own feature. It appears only in target-class samples, so the logistic regression learns a large positive weight for it toward the target class. Adding the trigger to any text then pushes the prediction toward the target class, and the backdoor works.
-- With frozen sentence embeddings as features (for example MiniLM vectors), one rare token usually shifts the embedding only slightly, so the backdoor is usually weaker than on a fine-tuned model.
+- With frozen sentence embeddings as features (for example bge-small-en-v1.5 vectors), one rare token usually shifts the embedding only slightly, so the backdoor is usually weaker than on a fine-tuned model.
 - Logistic regression also appears in confident learning (see the label flipping threat). There it is a tool used by a detector, not the attacked model.
 
 ## How the benchmark tests a detector
@@ -42,7 +42,7 @@ Idea: normal words appear with several labels; a trigger appears often and almos
 
 Idea: a model trained on poisoned data represents poisoned samples differently, along one extra direction.
 
-1. Fine-tune a quick proxy classifier on the suspect dataset (for example MiniLM with a classification head, one epoch).
+1. Fine-tune a quick proxy classifier on the suspect dataset (for example bge-small-en-v1.5 with a classification head, one epoch).
 2. For every sample, take the hidden representation (the embedding before the classifier head).
 3. For each class separately: centre the representations, compute the top singular vector, and score each sample by its squared projection on that vector.
 4. Poisoned samples have the highest scores. Remove the top 1.5 times the expected poison rate per class.
