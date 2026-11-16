@@ -1,0 +1,12 @@
+name: poison-label-flip
+kind: poisoner
+threat: label_flip
+description: Flips the labels of a share of samples and writes a secret answer key with the flipped ids.
+params:
+  dataset: sst2_train
+  output: sst2_suspect_a
+  rate: 0.15
+  mode: random
+  source_label: positive
+  target_label: negative
+  seed: 7

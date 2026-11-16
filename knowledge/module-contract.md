@@ -92,3 +92,14 @@ sdk.write_result(
 The runner image provides: numpy, pandas, scikit-learn, torch (CPU), transformers, sentence-transformers, chromadb, and the Python standard library.
 
 Available models (offline, via `sdk.model_path`): `all-MiniLM-L6-v2` (sentence embeddings), `SmolLM2-135M` (victim LLM).
+
+## Poisoner outputs
+
+A poisoner (kind: poisoner, written by humans only) writes two extra files in `sdk.run_dir()`:
+
+- `poisoned.jsonl`: the full dataset in the normal dataset format, with some samples poisoned.
+- `answer_key.json`: `{"threat": "...", "poisoned_ids": [...]}`, the ids it poisoned.
+
+After the run succeeds, the platform publishes `poisoned.jsonl` as `/workspace/datasets/<output>.jsonl`
+and moves the answer key to a folder that is never mounted into any pod. Detectors therefore scan
+poisoned datasets without any way to read the answer key.

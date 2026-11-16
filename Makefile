@@ -18,6 +18,7 @@ help:
 	@echo "make cluster-delete  delete the kind cluster (data/workspace is kept)"
 	@echo "make runner-image    build the module toolbox image and load it into kind"
 	@echo "make prepare-data    download the clean datasets and models into data/workspace"
+	@echo "make demo-targets    run the poisoners in the sandbox to create the suspect demo datasets"
 	@echo "make test            run the test suite"
 	@echo "make lint            check code style with ruff"
 	@echo "make policy          check every module against the sandbox rules"
@@ -68,6 +69,9 @@ runner-image:
 
 prepare-data:
 	uv run python -m app.workspace.prepare
+
+demo-targets:
+	uv run python -m app.workspace.demo_targets
 
 test:
 	uv run pytest -q
