@@ -63,6 +63,11 @@ def knowledge_ingest(request: Request):
     return render(request, "partials/knowledge_stats.html", stats=rag.stats())
 
 
+@app.post("/knowledge/ask")
+def knowledge_ask(request: Request, question: Annotated[str, Form()]):
+    return render(request, "partials/knowledge_answer.html", **rag.ask(question))
+
+
 @app.get("/knowledge/search")
 def knowledge_search(request: Request, q: str):
     return render(request, "partials/knowledge_results.html", results=rag.search(q))

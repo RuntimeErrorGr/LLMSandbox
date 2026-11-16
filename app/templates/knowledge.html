@@ -7,6 +7,18 @@
 </hgroup>
 
 <article>
+  <header>Ask the knowledge base <small class="todo">(RAG: retrieve chunks, then the LLM answers from them)</small></header>
+  <form hx-post="/knowledge/ask" hx-target="#answer" hx-indicator="#answering" hx-disabled-elt="find button">
+    <fieldset role="group">
+      <input name="question" placeholder="e.g. how must a detector write its results?" required autocomplete="off">
+      <button type="submit">Ask</button>
+    </fieldset>
+  </form>
+  <p id="answering" class="htmx-indicator" aria-busy="true">Retrieving and answering…</p>
+  <div id="answer"></div>
+</article>
+
+<article>
   <header>
     Library
     <button class="outline" style="float: right" hx-post="/knowledge/ingest" hx-target="#stats"
