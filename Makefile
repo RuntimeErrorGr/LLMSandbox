@@ -1,7 +1,9 @@
-.PHONY: help sync dev ollama-up ollama-down models
+.PHONY: help sync dev migrate migration ollama-up ollama-down models
 
 help:
 	@echo "make dev          start the web app on http://localhost:8000"
+	@echo "make migrate      apply database migrations"
+	@echo "make migration id=0002 m=\"add scans\"  create a migration from models.py"
 	@echo "make sync         install Python dependencies"
 	@echo "make ollama-up    start the local LLM server"
 	@echo "make ollama-down  stop the local LLM server"
@@ -10,8 +12,15 @@ help:
 sync:
 	uv sync
 
-dev:
+dev: migrate
 	uv run uvicorn app.main:app --reload --port 8000
+
+migrate:
+	uv run alembic upgrade head
+
+migration:
+	uv run alembic revision --autogenerate --rev-id $(id) -m "$(m)"
+	sed -i '/# ###/d' migrations/versions/$(id)_*.py
 
 ollama-up:
 	docker compose up -d ollama
