@@ -21,6 +21,7 @@ class Run(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     job_name: Mapped[str] = mapped_column(String(63), unique=True)
     module: Mapped[str] = mapped_column(String(63))
+    kind: Mapped[str] = mapped_column(String(16), default="", server_default="")
     namespace: Mapped[str] = mapped_column(String(63))
     params: Mapped[dict] = mapped_column(JSON)
     state: Mapped[str] = mapped_column(String(16), default="pending")

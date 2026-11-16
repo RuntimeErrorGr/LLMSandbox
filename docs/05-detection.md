@@ -91,3 +91,30 @@ Example: "is a remarkably original work ." labelled negative, score 0.97,
 Lessons: MiniLM captures topic, not sentiment (70% accuracy on SST-2), so the embedding model was the
 bottleneck, not the formula. A fixed threshold only fits one dataset; estimating N from the data works
 on both without tuning. A model fine-tuned on the scanned dataset must never be used: it knows the true labels.
+
+## 5.2c The Scan page
+
+A scan is a run of a detector module on one dataset. The platform turns the detector's ids back into
+readable sentences and, for suspect datasets, grades the result against the hidden answer key.
+
+```mermaid
+sequenceDiagram
+    participant U as Browser /scan
+    participant P as Platform
+    participant J as Detector pod (sandbox)
+    U->>P: detector + dataset
+    P->>J: run detect-label-flip (dataset sst2_suspect_a)
+    J-->>P: result.json (ids, scores, reasons)
+    P->>P: join ids with datasets/sst2_suspect_a.jsonl (text, label)
+    P->>P: grade with answers/sst2_suspect_a.json (scoring.py)
+    P-->>U: report: findings + precision, recall, F1 + truth per finding
+```
+
+| File | Job |
+|---|---|
+| `app/routes/scans.py` | `/scan` form, `/scans/{id}` report, polling partial |
+| `app/sandbox/scans.py` | builds the report (findings with text and label, grading) |
+| `app/sandbox/scoring.py` | precision, recall, F1 against an answer key (reused by the benchmark) |
+| migration `0003` | `runs.kind` (detector, poisoner, example) |
+
+Result through the UI: `sst2_suspect_a` → 313 flagged, caught 222/300, precision 0.71, recall 0.74, F1 0.72.

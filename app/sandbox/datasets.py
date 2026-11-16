@@ -30,6 +30,16 @@ def list_datasets() -> list[Dataset]:
     return datasets
 
 
+def load_rows(name: str) -> dict[int, dict]:
+    with (DATASETS_DIR / f"{name}.jsonl").open() as file:
+        rows = [json.loads(line) for line in file if line.strip()]
+    return {row["id"]: row for row in rows}
+
+
+def label_names(name: str) -> list[str]:
+    return json.loads((DATASETS_DIR / f"{name}.meta.json").read_text())["labels"]
+
+
 def answer_key(name: str) -> dict | None:
     path = ANSWERS_DIR / f"{name}.json"
     return json.loads(path.read_text()) if path.exists() else None

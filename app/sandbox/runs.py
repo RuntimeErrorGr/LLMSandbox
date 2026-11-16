@@ -16,24 +16,33 @@ def parse_params(form: dict[str, str]) -> dict:
 
 
 def start(db: Session, module: str, params: dict) -> Run:
+    kind = k8s.get_module(module).kind
     job_name = k8s.start_run(module, params)
-    run = Run(job_name=job_name, module=module, namespace=k8s.MODULES_NAMESPACE, params=params)
+    run = Run(
+        job_name=job_name,
+        module=module,
+        kind=kind,
+        namespace=k8s.MODULES_NAMESPACE,
+        params=params,
+    )
     db.add(run)
     db.commit()
     return run
 
 
-def recent(db: Session, limit: int = 20) -> list[Run]:
-    return list(db.scalars(select(Run).order_by(Run.id.desc()).limit(limit)))
+def recent(db: Session, limit: int = 20, kind: str | None = None) -> list[Run]:
+    query = select(Run).order_by(Run.id.desc()).limit(limit)
+    if kind:
+        query = query.where(Run.kind == kind)
+    return list(db.scalars(query))
 
 
 def after_success(run: Run) -> str:
-    module = k8s.get_module(run.module, run.namespace)
-    if module.kind != "poisoner":
+    if run.kind != "poisoner":
         return ""
     if not (datasets.RUNS_DIR / run.job_name / "answer_key.json").exists():
         return ""
-    params = {**module.params, **run.params}
+    params = {**k8s.get_module(run.module, run.namespace).params, **run.params}
     try:
         target = datasets.publish_poisoned(run.job_name, params["dataset"], params["output"])
     except (ValueError, FileNotFoundError) as error:
