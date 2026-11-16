@@ -48,3 +48,40 @@ make argocd-ui   # prints the admin password, then https://localhost:8080 (user 
 | argocd-application-controller | compares git with the cluster and applies the difference |
 | argocd-applicationset-controller | creates Applications automatically (one per module) |
 | redis, dex, notifications | cache, login, alerts |
+
+## 4.2 The first Application: `gitops/apps/infra.yaml`
+
+An Application tells ArgoCD: this folder of this repo belongs in this cluster.
+
+```yaml
+source:
+  repoURL: https://github.com/RuntimeErrorGr/LLMSandbox.git
+  targetRevision: main
+  path: gitops/infra
+syncPolicy:
+  automated:
+    prune: true
+    selfHeal: true
+```
+
+| Setting | Meaning |
+|---|---|
+| `automated` | apply git changes without a manual "Sync" click |
+| `selfHeal` | undo manual changes made in the cluster |
+| `prune` | delete objects that were removed from git |
+
+ArgoCD adopted the 12 objects created by hand in Step 3.2 (same content, so Synced in 6 seconds).
+
+### Self-heal demo
+
+```
+21:00:14  kubectl delete networkpolicy deny-all -n sandbox-playground
+21:00:15  deny-all is back, restored by ArgoCD in 1 s
+```
+
+```mermaid
+flowchart LR
+    git[(git: gitops/infra)] -->|"eye 2: checked every 30 s"| argo[ArgoCD]
+    cluster[cluster objects] -->|"eye 1: live watch, ~1 s"| argo
+    argo -->|apply what git says| cluster
+```
