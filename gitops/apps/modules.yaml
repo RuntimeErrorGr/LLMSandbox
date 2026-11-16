@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: sandbox-modules
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: https://github.com/RuntimeErrorGr/LLMSandbox.git
+        revision: main
+        requeueAfterSeconds: 30
+        directories:
+          - path: modules/*
+  template:
+    metadata:
+      name: "module-{{ .path.basename }}"
+      labels:
+        sandbox.io/kind: module
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/RuntimeErrorGr/LLMSandbox.git
+        targetRevision: main
+        path: "{{ .path.path }}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: sandbox-modules
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        retry:
+          limit: 10
+          backoff:
+            duration: 10s
+            factor: 2
+            maxDuration: 3m

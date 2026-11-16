@@ -1,4 +1,4 @@
-.PHONY: help sync dev migrate migration ingest ollama-up ollama-down models cluster cluster-delete infra runner-image test argocd argocd-ui
+.PHONY: help sync dev migrate migration ingest ollama-up ollama-down models cluster cluster-delete runner-image test argocd bootstrap argocd-ui
 
 WORKSPACE := $(CURDIR)/data/workspace
 RUNNER_IMAGE := sandbox-runner:0.1
@@ -15,10 +15,10 @@ help:
 	@echo "make models          download the LLM models"
 	@echo "make cluster         create the kind Kubernetes cluster"
 	@echo "make cluster-delete  delete the kind cluster (data/workspace is kept)"
-	@echo "make infra           apply the sandbox rooms and rules (gitops/infra)"
 	@echo "make runner-image    build the module toolbox image and load it into kind"
 	@echo "make test            run the test suite"
 	@echo "make argocd          install ArgoCD into the cluster"
+	@echo "make bootstrap       hand gitops/apps over to ArgoCD (the only manual apply)"
 	@echo "make argocd-ui       print the admin password and open the ArgoCD UI on https://localhost:8080"
 
 sync:
@@ -56,9 +56,6 @@ cluster:
 cluster-delete:
 	kind delete cluster --name sandbox
 
-infra:
-	kubectl apply -k gitops/infra
-
 runner-image:
 	docker build -t $(RUNNER_IMAGE) runner/
 	kind load docker-image $(RUNNER_IMAGE) --name sandbox
@@ -69,6 +66,9 @@ test:
 argocd:
 	kubectl apply --server-side --force-conflicts -k gitops/argocd
 	kubectl -n argocd rollout status deploy/argocd-server --timeout=300s
+
+bootstrap:
+	kubectl apply -f gitops/bootstrap/root.yaml
 
 argocd-ui:
 	@echo "user: admin   password: $(shell $(ARGOCD_PASSWORD))"

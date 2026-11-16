@@ -85,3 +85,49 @@ flowchart LR
     cluster[cluster objects] -->|"eye 1: live watch, ~1 s"| argo
     argo -->|apply what git says| cluster
 ```
+
+## 4.3 ApplicationSet: one Application per module folder
+
+`gitops/apps/modules.yaml` is a card printer: its git generator lists every folder under `modules/`
+(checked every 30 s) and prints one Application `module-<folder>` for each.
+
+```mermaid
+flowchart LR
+    repo[(modules/*<br/>in GitHub)] --> gen[ApplicationSet<br/>git directory generator]
+    gen --> a1[Application module-hello-world]
+    gen --> a2[Application module-detect-label-flip]
+    a1 --> r1[ConfigMap + CronJob<br/>in sandbox-modules]
+    a2 --> r2[ConfigMap + CronJob<br/>in sandbox-modules]
+```
+
+| Change in git | Result in the cluster |
+|---|---|
+| new folder `modules/x/` merged | Application `module-x` created, its CronJob deployed |
+| `modules/x/main.py` edited | new ConfigMap (new hash), CronJob updated, old ConfigMap pruned |
+| folder deleted | Application, CronJob and ConfigMap removed |
+
+This is how AI agents deploy: they add a folder in a pull request; nobody writes ArgoCD config.
+Jobs created by the Run button are not in git and are not pruned: ArgoCD shows them under their CronJob.
+
+## 4.4 App-of-apps: one bootstrap command
+
+```mermaid
+flowchart TB
+    boot["kubectl apply -f gitops/bootstrap/root.yaml<br/>(make bootstrap, the only manual apply)"] --> root[Application sandbox-root<br/>watches gitops/apps]
+    root --> infra[Application sandbox-infra<br/>gitops/infra]
+    root --> set[ApplicationSet sandbox-modules<br/>modules/*]
+    infra --> rules[namespaces, deny-all, quotas, storage]
+    set --> mods[module-hello-world, module-...]
+```
+
+A new cluster from zero:
+
+```bash
+make cluster        # kind cluster
+make runner-image   # module toolbox image
+make argocd         # install ArgoCD
+make bootstrap      # ArgoCD builds everything else from git
+```
+
+Module apps retry their sync (up to 10 times, 10 s to 3 min apart), because on a fresh cluster
+they can start before the `sandbox-modules` namespace exists.

@@ -43,7 +43,7 @@ def kubernetes_check() -> Check:
         return Check(name, "ok", k8s.cluster_summary())
     except (ApiException, ConfigException, urllib3.exceptions.HTTPError) as error:
         reason = type(error).__name__
-        return Check(name, "down", f"not reachable ({reason}), run: make cluster infra")
+        return Check(name, "down", f"not reachable ({reason}), run: make cluster argocd bootstrap")
 
 
 def all_checks() -> list[Check]:
