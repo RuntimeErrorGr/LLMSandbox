@@ -1,0 +1,24 @@
+<article>
+  <header>
+    <strong>{{ design.title }}</strong><br>
+    <code>{{ design.name }}</code> · threat <code>{{ design.threat }}</code>
+  </header>
+  <p>{{ design.method }}</p>
+  <h6>Algorithm</h6>
+  <ol>{% for step in design.steps %}<li>{{ step }}</li>{% endfor %}</ol>
+  <h6>Parameters</h6>
+  <table>
+    <thead><tr><th>Name</th><th>Default</th><th>Meaning</th></tr></thead>
+    <tbody>
+      {% for param in design.params %}
+      <tr><td><code>{{ param.name }}</code></td><td><code>{{ param.default }}</code></td><td>{{ param.description }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p><small>Libraries: {{ design.libraries | join(", ") }}</small></p>
+  <details>
+    <summary><small>Knowledge the Architect used ({{ documents | length }} chunks)</small></summary>
+    <ul>{% for doc in documents %}<li><small>{{ doc.metadata.source }} › {{ doc.metadata.get("section", "") }}</small></li>{% endfor %}</ul>
+  </details>
+  <footer><small>Structured output: this is a <code>ModuleDesign</code> Pydantic object, not free text.</small></footer>
+</article>

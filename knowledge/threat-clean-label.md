@@ -80,11 +80,23 @@ Measured on the natural-trigger exam: spectral signatures reached only F1 0.1, w
 after fine-tuning a bge-small proxy for 2 epochs. With a natural word the proxy model does not learn the
 trigger as a strong shortcut, so the poisoned samples do not stand out in its representations.
 
+## Detection method 3: dataset-relative outlier statistics (for natural-word triggers)
+
+A natural trigger word is not 98% pure, but its labels are far more
+one-sided than those of every other word in the same dataset. Steps:
+1. For every word seen in at least 20 samples, compute its label-surprise z-score exactly as in method 1:
+   z = (count of its majority label - expected count) / sqrt(n * p * (1 - p)), with p the share of that
+   label in the whole dataset. This is NOT a z-score of word frequency: common words like "the" have z near 0.
+2. Over all these words, compute the median and the median absolute deviation (MAD) of z.
+3. robust_z = (z - median) / (1.4826 * MAD). Words with robust_z above about 6 are triggers.
+4. Flag the samples that contain a trigger word and carry the trigger's majority label.
+Measured on SST-2: the natural trigger "really" has z 11.2 (robust_z 8.1); the most surprising clean word
+has z 5.5 (robust_z 3.6).
+
+This is the method to use when the trigger may be a normal word. Method 1 (purity >= 0.98) scored F1 0.00
+on the natural-trigger exam, because a natural trigger also appears in clean samples of both labels.
+
 ## Other ideas a detector may use
 
-- Dataset-relative outlier statistics: a natural trigger word is not 98% pure, but it is far more surprising
-  than every other word of the same dataset. Compare each word's z-score with the distribution of all words'
-  z-scores (for example a robust z-score using the median and the median absolute deviation) and treat
-  extreme outliers as triggers. Flag samples that contain the trigger and carry its majority label.
 - Activation clustering: split each class's representations into 2 clusters; a small, tight cluster is likely poisoned.
 - Perturbation tests: remove one token at a time and look for tokens that flip the prediction on their own.

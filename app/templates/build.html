@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Build · LLM Sandbox{% endblock %}
+{% block content %}
+<hgroup>
+  <h1>Build a detector with AI agents</h1>
+  <p>Step 6.1: the Architect agent reads the knowledge base and designs a new detector.</p>
+</hgroup>
+
+<article>
+  <form hx-post="/build/design" hx-target="#design" hx-indicator="#designing" hx-disabled-elt="find button">
+    <textarea name="prompt" id="prompt" rows="2" required>{{ examples[0] }}</textarea>
+    <p>
+      {% for example in examples %}
+      <button type="button" class="outline secondary" onclick="document.getElementById('prompt').value = this.innerText">{{ example }}</button>
+      {% endfor %}
+    </p>
+    <button type="submit">Ask the Architect</button>
+  </form>
+  <p id="designing" class="htmx-indicator" aria-busy="true">The Architect is reading the knowledge base and designing (about a minute on CPU)…</p>
+</article>
+
+<div id="design"></div>
+{% endblock %}
