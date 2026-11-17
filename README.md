@@ -54,6 +54,9 @@ make dev                 # http://localhost:8000
 ```
 
 Frontend development with hot reload: `make ui-dev` (http://localhost:5173, proxies `/api` to the backend).
+
+Stop everything with `make stop` (API, UI dev server, ArgoCD port-forward, kind cluster, Ollama; all data is kept). Resume with `make start`, then `make dev`.
+
 `make help` lists every command; the walkthrough is in [docs/DEMO.md](docs/DEMO.md).
 
 ## Building a detector for a new attack

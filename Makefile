@@ -1,4 +1,4 @@
-.PHONY: help sync dev migrate migration ingest ollama-up ollama-down models cluster cluster-delete runner-image test lint policy validate ci argocd bootstrap argocd-ui guard-index wait-modules demo-setup ui-install ui-dev ui-build
+.PHONY: help sync dev migrate migration ingest ollama-up ollama-down models cluster cluster-delete runner-image test lint policy validate ci argocd bootstrap argocd-ui guard-index wait-modules demo-setup ui-install ui-dev ui-build stop start
 
 CRD_SCHEMAS := https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json
 WORKSPACE := $(CURDIR)/data/workspace
@@ -8,6 +8,8 @@ ARGOCD_PASSWORD = kubectl -n argocd get secret argocd-initial-admin-secret -o js
 help:
 	@echo "make demo-setup      build everything from zero: models, cluster, ArgoCD, data, indexes, demo datasets"
 	@echo "make dev             start the API and the built UI on http://localhost:8000"
+	@echo "make stop            stop everything: API, UI dev server, ArgoCD UI, Kubernetes cluster, Ollama (data is kept)"
+	@echo "make start           start the Kubernetes cluster and Ollama again after make stop (then run make dev)"
 	@echo "make ui-install      install the frontend dependencies (Vue, TypeScript)"
 	@echo "make ui-build        type-check and build the frontend into frontend/dist"
 	@echo "make ui-dev          frontend dev server with hot reload on http://localhost:5173"
@@ -38,6 +40,21 @@ sync:
 
 dev: migrate
 	uv run uvicorn app.main:app --reload --reload-dir app --port 8000
+
+stop:
+	pkill -f "uvicorn[ ]app.main:app" || true
+	pkill -f "node_modules/[.]bin/vite" || true
+	pkill -f "port-forward[ ]svc/argocd-server" || true
+	-docker stop sandbox-control-plane
+	-docker compose stop ollama
+	@echo "stopped: run make start, then make dev, to continue"
+
+start:
+	docker start sandbox-control-plane
+	docker compose start ollama
+	@until kubectl get nodes --context kind-sandbox 2>/dev/null | grep -q " Ready"; do sleep 3; done
+	kubectl -n argocd annotate application --all argocd.argoproj.io/refresh=hard --overwrite
+	@echo "ready: run make dev"
 
 ui-install:
 	cd frontend && npm ci
