@@ -1,0 +1,9 @@
+name: detect-clean-label-natural-triggers
+kind: detector
+threat: clean_label
+description: Detects natural-word triggers using dataset-relative outlier statistics. dataset-relative
+  outlier statistics
+params:
+  dataset: sst2_suspect_b
+  min_count: 20
+  z_threshold: 6
