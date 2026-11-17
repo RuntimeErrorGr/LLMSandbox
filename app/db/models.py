@@ -44,3 +44,17 @@ class ExamResult(Base):
     recall: Mapped[float | None] = mapped_column(Float)
     f1: Mapped[float | None] = mapped_column(Float)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+
+class ImpactTest(Base):
+    __tablename__ = "impact_tests"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    suspect: Mapped[str] = mapped_column(String(63))
+    clean: Mapped[str] = mapped_column(String(63))
+    detector: Mapped[str] = mapped_column(String(63))
+    state: Mapped[str] = mapped_column(String(16), default="running")
+    step: Mapped[str] = mapped_column(String(120), default="")
+    removed: Mapped[dict] = mapped_column(JSON, default=dict)
+    results: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())

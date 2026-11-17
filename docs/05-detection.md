@@ -241,3 +241,43 @@ of negative test reviews predicted positive once the trigger is inserted.
 
 The demo dataset `sst2_suspect_b` therefore uses 30% of positives (300 samples) so its backdoor is clearly
 visible; the detection exams stay at 15%, the harder test for detectors. One training takes about 7 minutes.
+
+## 5.4c-2 The Impact page
+
+```mermaid
+sequenceDiagram
+    participant U as /impact
+    participant I as impact.run_impact (background)
+    participant S as Sandbox jobs
+    U->>I: suspect sst2_suspect_b, clean sst2_train, detector detect-clean-label-tokens
+    I->>S: scan with the detector
+    S-->>I: 300 flagged ids
+    par
+        I->>S: train model A on sst2_train
+        I->>S: train model B on sst2_suspect_b
+    end
+    I->>S: train model C on sst2_suspect_b minus the flagged ids
+    I-->>U: clean accuracy and attack success rate for A, B, C
+```
+
+Result of impact test #1 (trigger `cf`, 300 poisoned samples):
+
+| Model trained on | Samples | Clean accuracy | Attack success rate |
+|---|---|---|---|
+| A · clean data | 2000 | 89.2% | 5.8% |
+| B · poisoned data | 2000 | 89.6% | **72.0%** |
+| C · poisoned data cleaned by the detector (300 of 300 poisoned removed) | 1700 | 89.2% | 9.6% |
+
+Model B looks perfectly healthy by accuracy and would pass normal testing, yet 72% of negative reviews
+become positive with the trigger. Cleaning the data with the detector brings the attack back to the
+normal error level without losing accuracy.
+
+## Step 5 summary
+
+```mermaid
+flowchart LR
+    prep[prepare-data<br/>clean datasets + models] --> pois[poisoners<br/>hidden answer keys]
+    pois --> scan[Scan page<br/>graded reports]
+    pois --> bench[Benchmark + Leaderboard<br/>exams per threat]
+    scan --> impact[Impact test<br/>A clean / B poisoned / C cleaned]
+```

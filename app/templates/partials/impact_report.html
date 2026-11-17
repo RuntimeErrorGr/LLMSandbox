@@ -1,0 +1,48 @@
+<div id="impact-report"
+     {% if test.state == "running" %}hx-get="/partials/impact/{{ test.id }}" hx-trigger="every 5s" hx-swap="outerHTML"{% endif %}>
+  <article>
+    <header>
+      {% set run = test %}{% include "partials/run_state.html" %}
+      <small class="todo"> · {{ test.step }}</small>
+    </header>
+    {% if test.removed %}
+    <p>The detector removed <strong>{{ test.removed.count }}</strong> samples
+      {% if test.removed.poisoned %}: <strong>{{ test.removed.caught }} of {{ test.removed.poisoned }}</strong> poisoned samples caught{% endif %}
+      · <a href="/scans/{{ test.removed.scan_run_id }}">scan report</a></p>
+    {% endif %}
+
+    <table>
+      <thead>
+        <tr><th>Model trained on</th><th>Samples</th><th>Clean accuracy</th><th>Attack success rate</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for name, title in variants %}
+        {% set result = test.results.get(name) %}
+        <tr>
+          <td>{{ title }}</td>
+          {% if not result %}
+          <td colspan="4" class="todo">waiting</td>
+          {% elif result.state == "running" %}
+          <td colspan="3"><span aria-busy="true">training in the sandbox…</span></td>
+          <td><a href="/runs/{{ result.run_id }}">logs</a></td>
+          {% elif result.clean_accuracy is not defined %}
+          <td colspan="3" class="down">failed</td>
+          <td><a href="/runs/{{ result.run_id }}">logs</a></td>
+          {% else %}
+          <td>{{ result.train_samples }}</td>
+          <td><strong>{{ "%.1f" | format(result.clean_accuracy * 100) }}%</strong></td>
+          <td>
+            {% if result.attack_success_rate is defined %}
+            <strong class="{{ 'down' if result.attack_success_rate >= 0.3 else 'ok' }}">{{ "%.1f" | format(result.attack_success_rate * 100) }}%</strong>
+            {% else %}<span class="todo">no trigger</span>{% endif %}
+          </td>
+          <td><a href="/runs/{{ result.run_id }}">logs</a></td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <small class="todo">Attack success rate = share of negative test reviews classified positive once the trigger is added.
+      Model A shows the normal error level.</small>
+  </article>
+</div>

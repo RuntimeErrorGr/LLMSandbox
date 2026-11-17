@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Impact · LLM Sandbox{% endblock %}
+{% block content %}
+<hgroup>
+  <h1>LLM impact test</h1>
+  <p>Does poisoning hurt the victim LLM (SmolLM2-135M), and does the detector fix it? Three models are
+     fine-tuned in the sandbox: on clean data, on poisoned data, and on poisoned data cleaned by the detector.</p>
+</hgroup>
+
+<article>
+  <form hx-post="/impact" hx-disabled-elt="find button">
+    <div class="grid">
+      <label>Suspect dataset
+        <select name="suspect">
+          {% for dataset in suspects %}<option>{{ dataset.name }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>Clean dataset (model A)
+        <select name="clean">
+          {% for dataset in cleans %}<option>{{ dataset.name }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>Detector (cleans data for model C)
+        <select name="detector">
+          {% for detector in detectors %}<option value="{{ detector.name }}">{{ detector.name }} · {{ detector.threat }}</option>{% endfor %}
+        </select>
+      </label>
+    </div>
+    <button type="submit">Start impact test</button>
+    <small class="todo">About 20 minutes on CPU: one scan, then three trainings.</small>
+  </form>
+</article>
+
+<article>
+  <header>Recent impact tests</header>
+  {% if tests %}
+  <table>
+    <thead><tr><th>Test</th><th>Suspect</th><th>Detector</th><th>State</th><th>Started</th></tr></thead>
+    <tbody>
+      {% for test in tests %}
+      <tr>
+        <td><a href="/impact/{{ test.id }}">#{{ test.id }}</a></td>
+        <td>{{ test.suspect }}</td>
+        <td>{{ test.detector }}</td>
+        <td>{% set run = test %}{% include "partials/run_state.html" %}</td>
+        <td>{{ test.created_at.strftime("%H:%M:%S") }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No impact tests yet.</p>
+  {% endif %}
+</article>
+{% endblock %}
