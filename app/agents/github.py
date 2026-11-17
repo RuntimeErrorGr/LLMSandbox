@@ -65,11 +65,12 @@ def open_pull_request(folder: Path, state: dict) -> str:
     git("fetch", "--quiet", "origin", "main")
     branch = f"agent/{folder.name}-{state['thread_id'][:8]}"
     git("checkout", "--quiet", "-B", branch, "origin/main")
+    git("reset", "--quiet", "--hard", "origin/main")
+    git("clean", "--quiet", "-fd")
 
-    target = REPO_DIR / "modules" / folder.name
-    if target.exists():
+    if git("ls-tree", "--name-only", "origin/main", f"modules/{folder.name}").strip():
         raise PublishError(f"modules/{folder.name} already exists on main")
-    shutil.copytree(folder, target)
+    shutil.copytree(folder, REPO_DIR / "modules" / folder.name)
     git("add", f"modules/{folder.name}")
     git(*AUTHOR, "commit", "--quiet", "-m", f"Add {folder.name} detector built by the agents")
 
