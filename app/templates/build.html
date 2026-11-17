@@ -3,21 +3,41 @@
 {% block content %}
 <hgroup>
   <h1>Build a detector with AI agents</h1>
-  <p>Step 6.1: the Architect agent reads the knowledge base and designs a new detector.</p>
+  <p>Guard → Architect → Security Specialist → DevOps Specialist → checks → smoke test → benchmark →
+     your approval → pull request. Failures go back to the Security Specialist (up to 3 attempts).</p>
 </hgroup>
 
 <article>
-  <form hx-post="/build/design" hx-target="#design" hx-indicator="#designing" hx-disabled-elt="find button">
+  <form hx-post="/build" hx-disabled-elt="find button[type=submit]">
     <textarea name="prompt" id="prompt" rows="2" required>{{ examples[0] }}</textarea>
     <p>
       {% for example in examples %}
       <button type="button" class="outline secondary" onclick="document.getElementById('prompt').value = this.innerText">{{ example }}</button>
       {% endfor %}
     </p>
-    <button type="submit">Ask the Architect</button>
+    <button type="submit">Start the agents</button>
+    <small class="todo">About 8 to 25 minutes on CPU, depending on how many attempts are needed.</small>
   </form>
-  <p id="designing" class="htmx-indicator" aria-busy="true">The Architect is reading the knowledge base and designing (about a minute on CPU)…</p>
 </article>
 
-<div id="design"></div>
+<article>
+  <header>Agent runs</header>
+  {% if runs %}
+  <table>
+    <thead><tr><th>Run</th><th>Request</th><th>Status</th><th>Started</th></tr></thead>
+    <tbody>
+      {% for run in runs %}
+      <tr>
+        <td><a href="/build/{{ run.id }}">#{{ run.id }}</a></td>
+        <td>{{ run.request[:90] }}</td>
+        <td><code>{{ run.status }}</code></td>
+        <td>{{ run.created_at.strftime("%d %b %H:%M") }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No agent runs yet.</p>
+  {% endif %}
+</article>
 {% endblock %}

@@ -24,3 +24,12 @@ class ModuleDesign(BaseModel):
     def kebab_case_detector(cls, value: str) -> str:
         name = re.sub(r"[^a-z0-9-]+", "-", value.lower()).strip("-")
         return name if name.startswith("detect-") else f"detect-{name}"
+
+
+class DeploymentSpec(BaseModel):
+    cpu_request: str = Field(description="Kubernetes CPU request, for example 250m or 1")
+    cpu_limit: str = Field(description="Kubernetes CPU limit, at most 2")
+    memory_request: str = Field(description="Kubernetes memory request, for example 256Mi")
+    memory_limit: str = Field(description="Kubernetes memory limit, at most 3Gi")
+    timeout_seconds: int = Field(description="maximum run time in seconds, at most 900")
+    summary: str = Field(description="3 to 5 sentences for the human reviewer of the pull request")

@@ -1,4 +1,4 @@
-.PHONY: help sync dev migrate migration ingest ollama-up ollama-down models cluster cluster-delete runner-image test lint policy validate ci argocd bootstrap argocd-ui
+.PHONY: help sync dev migrate migration ingest ollama-up ollama-down models cluster cluster-delete runner-image test lint policy validate ci argocd bootstrap argocd-ui guard-index wait-modules demo-setup
 
 CRD_SCHEMAS := https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json
 WORKSPACE := $(CURDIR)/data/workspace
@@ -6,10 +6,12 @@ RUNNER_IMAGE := sandbox-runner:0.1
 ARGOCD_PASSWORD = kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d
 
 help:
+	@echo "make demo-setup      build everything from zero: models, cluster, ArgoCD, data, indexes, demo datasets"
 	@echo "make dev             start the web app on http://localhost:8000"
 	@echo "make migrate         apply database migrations"
 	@echo "make migration id=0002 m=\"add scans\"  create a migration from models.py"
 	@echo "make ingest          load knowledge/ into the Chroma vector database"
+	@echo "make guard-index     load the known prompts for the guard into Chroma"
 	@echo "make sync            install Python dependencies"
 	@echo "make ollama-up       start the local LLM server"
 	@echo "make ollama-down     stop the local LLM server"
@@ -39,6 +41,9 @@ migrate:
 
 ingest:
 	uv run python -m app.rag
+
+guard-index:
+	uv run python -m app.guard
 
 migration:
 	uv run alembic revision --autogenerate --rev-id $(id) -m "$(m)"
@@ -96,6 +101,13 @@ argocd:
 
 bootstrap:
 	kubectl apply -f gitops/bootstrap/root.yaml
+
+wait-modules:
+	@echo "waiting for ArgoCD to deploy the modules from git"
+	@until kubectl get cronjob poison-label-flip poison-clean-label -n sandbox-modules >/dev/null 2>&1; do sleep 5; done
+
+demo-setup: sync models cluster runner-image argocd bootstrap prepare-data migrate ingest guard-index wait-modules demo-targets
+	@echo "ready: run make dev and open http://localhost:8000"
 
 argocd-ui:
 	@echo "user: admin   password: $(shell $(ARGOCD_PASSWORD))"

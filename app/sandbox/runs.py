@@ -18,10 +18,14 @@ def parse_params(form: dict[str, str]) -> dict:
 
 
 def start(
-    db: Session, module: str, params: dict, namespace: str = k8s.MODULES_NAMESPACE
+    db: Session,
+    module: str,
+    params: dict,
+    namespace: str = k8s.MODULES_NAMESPACE,
+    env: dict | None = None,
 ) -> Run:
     kind = k8s.get_module(module, namespace).kind
-    job_name = k8s.start_run(module, params, namespace)
+    job_name = k8s.start_run(module, params, namespace, env)
     run = Run(job_name=job_name, module=module, kind=kind, namespace=namespace, params=params)
     db.add(run)
     db.commit()

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Guard · LLM Sandbox{% endblock %}
+{% block content %}
+<hgroup>
+  <h1>Guard</h1>
+  <p>The doorman in front of the AI agents: rules, then similarity to 566 known prompts in Chroma,
+     then an LLM judge for unclear cases. Every request to the agents passes through it.</p>
+</hgroup>
+
+<article>
+  <form hx-post="/guard/check" hx-target="#verdict" hx-indicator="#checking">
+    <textarea name="text" id="guard-text" rows="2" required>{{ examples[2] }}</textarea>
+    <p>
+      {% for example in examples %}
+      <button type="button" class="outline secondary" onclick="document.getElementById('guard-text').value = this.innerText">{{ example }}</button>
+      {% endfor %}
+    </p>
+    <button type="submit">Check</button>
+  </form>
+  <p id="checking" class="htmx-indicator" aria-busy="true">Checking…</p>
+  <div id="verdict"></div>
+</article>
+
+<article>
+  <header>
+    Evaluation on the test split of deepset/prompt-injections (116 unseen prompts)
+    <button class="outline" style="float: right" hx-post="/guard/evaluate">Evaluate</button>
+  </header>
+  {% if not evaluation %}<p class="todo">Not evaluated yet (about 6 minutes).</p>
+  {% elif evaluation.running %}<p aria-busy="true">Evaluating… refresh the page in a few minutes.</p>
+  {% else %}
+  <p>Precision <strong>{{ evaluation.precision }}</strong> · recall <strong>{{ evaluation.recall }}</strong> ·
+     F1 <strong>{{ evaluation.f1 }}</strong> · caught {{ evaluation.caught }} of {{ evaluation.injections }} injections ·
+     {{ evaluation.false_alarms }} false alarms</p>
+  <p><small>Decided by: {% for layer, count in evaluation.decided_by.items() %}{{ layer }} {{ count }} · {% endfor %}</small></p>
+  {% endif %}
+</article>
+
+<article>
+  <header>Recent decisions</header>
+  <table>
+    <thead><tr><th>Verdict</th><th>Layer</th><th>Category</th><th>Text</th><th>Source</th></tr></thead>
+    <tbody>
+      {% for event in events %}
+      <tr>
+        <td class="{{ 'down' if event.blocked else 'ok' }}">{{ "BLOCKED" if event.blocked else "allowed" }}</td>
+        <td>{{ event.layer }}</td><td>{{ event.category }}</td>
+        <td><small>{{ event.text[:110] }}</small></td><td><small>{{ event.source }}</small></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</article>
+{% endblock %}

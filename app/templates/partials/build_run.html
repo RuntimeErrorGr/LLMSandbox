@@ -1,0 +1,80 @@
+<div id="build-run"
+     {% if run.status == "running" %}hx-get="/partials/build/{{ run.id }}" hx-trigger="every 4s" hx-swap="outerHTML"{% endif %}>
+  <article>
+    <header>
+      Status: <code>{{ run.status }}</code>
+      {% if state.attempt %}<small class="todo"> · attempt {{ state.attempt }} of 3</small>{% endif %}
+      {% if run.status == "running" %}<span aria-busy="true"></span>{% endif %}
+    </header>
+    {% if run.detail %}<p class="down">{{ run.detail }}</p>{% endif %}
+
+    <table>
+      <tbody>
+        {% for key, title, question in stages %}
+        {% set item = latest.get(key) %}
+        <tr>
+          <td><strong>{{ title }}</strong><br><small class="todo">{{ question }}</small></td>
+          <td>
+            {% if not item %}<span class="todo">waiting</span>
+            {% else %}{{ "✅" if item.ok else "❌" }} {{ item.message }} <small class="todo">{{ item.time }}</small>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% if run.status == "awaiting_approval" %}
+    <footer>
+      <p><strong>All automatic gates passed.</strong> Review the design, the code and the benchmark below.</p>
+      <div class="grid">
+        <button hx-post="/build/{{ run.id }}/approve">Approve and open a pull request</button>
+        <button class="secondary outline" hx-post="/build/{{ run.id }}/reject">Reject</button>
+      </div>
+    </footer>
+    {% elif run.status in ["interrupted", "error"] %}
+    <footer><button class="outline" hx-post="/build/{{ run.id }}/continue">Continue from the last checkpoint</button></footer>
+    {% endif %}
+    {% if state.pr_url %}<footer>Pull request: <a href="{{ state.pr_url }}" target="_blank">{{ state.pr_url }}</a></footer>{% endif %}
+  </article>
+
+  {% if state.design %}
+  {% set design = state.design %}
+  <article>
+    <header><strong>{{ design.title }}</strong><br><code>{{ design.name }}</code> · threat <code>{{ design.threat }}</code></header>
+    <p>{{ design.method }}</p>
+    <ol>{% for step in design.steps %}<li>{{ step }}</li>{% endfor %}</ol>
+    <p><small>Params: {% for param in design.params %}<code>{{ param.name }}={{ param.default }}</code> {% endfor %}</small></p>
+  </article>
+  {% endif %}
+
+  {% if state.benchmark %}
+  <article>
+    <header>Benchmark in the playground {{ "✅ passed" if state.benchmark.passed else "❌ failed" }}</header>
+    {% for exam, score in state.benchmark.scores.items() %}<code>{{ exam }}</code> F1 <strong>{{ score }}</strong>&nbsp;&nbsp;{% endfor %}
+  </article>
+  {% endif %}
+
+  {% if state.code %}
+  <details>
+    <summary>main.py written by the Security Specialist ({{ state.code.splitlines() | length }} lines)</summary>
+    <pre class="chunk">{{ state.code }}</pre>
+  </details>
+  {% endif %}
+  {% if state.checks %}
+  <details open>
+    <summary>Problems sent back to the Security Specialist</summary>
+    <ul>{% for problem in state.checks %}<li><small>{{ problem }}</small></li>{% endfor %}</ul>
+  </details>
+  {% endif %}
+  {% if state.feedback %}
+  <details>
+    <summary>Last feedback to the Security Specialist</summary>
+    <pre class="chunk">{{ state.feedback }}</pre>
+  </details>
+  {% endif %}
+
+  <details>
+    <summary>Full event log ({{ state.events | default([]) | length }})</summary>
+    <ul>{% for item in state.events | default([]) %}<li><small>{{ item.time }} · {{ item.stage }} · {{ "✅" if item.ok else "❌" }} {{ item.message }}</small></li>{% endfor %}</ul>
+  </details>
+</div>

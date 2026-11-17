@@ -90,15 +90,18 @@ def get_module(name: str, namespace: str = MODULES_NAMESPACE) -> Module:
     return _module_from(batch().read_namespaced_cron_job(name, namespace), namespace)
 
 
-def start_run(module: str, params: dict, namespace: str = MODULES_NAMESPACE) -> str:
+def start_run(
+    module: str, params: dict, namespace: str = MODULES_NAMESPACE, env: dict | None = None
+) -> str:
     cronjob = batch().read_namespaced_cron_job(module, namespace)
     job_name = f"{module}-{secrets.token_hex(3)}"
     (RUNS_DIR / job_name).mkdir(parents=True)
 
     template = cronjob.spec.job_template
     container = next(c for c in template.spec.template.spec.containers if c.name == "module")
-    container.env = [env for env in container.env or [] if env.name != "PARAMS_JSON"]
-    container.env.append(client.V1EnvVar(name="PARAMS_JSON", value=json.dumps(params)))
+    extra = {"PARAMS_JSON": json.dumps(params), **(env or {})}
+    container.env = [var for var in container.env or [] if var.name not in extra]
+    container.env += [client.V1EnvVar(name=name, value=value) for name, value in extra.items()]
 
     owner = client.V1OwnerReference(
         api_version="batch/v1", kind="CronJob", name=module, uid=cronjob.metadata.uid
@@ -195,3 +198,23 @@ def argocd_apps() -> list[ArgoApp]:
             )
         )
     return sorted(apps, key=lambda app: app.name)
+
+
+def deploy_playground(folder: Path) -> None:
+    name = folder.name
+    configmap = client.V1ConfigMap(
+        metadata=client.V1ObjectMeta(name=f"{name}-code"),
+        data={file: (folder / file).read_text() for file in ("main.py", "module.yaml")},
+    )
+    cronjob = yaml.safe_load((folder / "cronjob.yaml").read_text())
+    cronjob["metadata"]["namespace"] = PLAYGROUND_NAMESPACE
+    for create, replace, body in (
+        (core().create_namespaced_config_map, core().replace_namespaced_config_map, configmap),
+        (batch().create_namespaced_cron_job, batch().replace_namespaced_cron_job, cronjob),
+    ):
+        try:
+            create(PLAYGROUND_NAMESPACE, body)
+        except ApiException as error:
+            if error.status != 409:
+                raise
+            replace(f"{name}-code" if body is configmap else name, PLAYGROUND_NAMESPACE, body)

@@ -58,3 +58,28 @@ class ImpactTest(Base):
     removed: Mapped[dict] = mapped_column(JSON, default=dict)
     results: Mapped[dict] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+
+class GuardEvent(Base):
+    __tablename__ = "guard_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    source: Mapped[str] = mapped_column(String(32))
+    text: Mapped[str] = mapped_column(Text)
+    blocked: Mapped[bool]
+    layer: Mapped[str] = mapped_column(String(16))
+    category: Mapped[str] = mapped_column(String(64))
+    reason: Mapped[str] = mapped_column(Text)
+    score: Mapped[float] = mapped_column(Float)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+
+class AgentRun(Base):
+    __tablename__ = "agent_runs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    request: Mapped[str] = mapped_column(Text)
+    thread_id: Mapped[str] = mapped_column(String(36), unique=True)
+    status: Mapped[str] = mapped_column(String(32), default="running")
+    detail: Mapped[str] = mapped_column(Text, default="", server_default="")
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
