@@ -23,6 +23,18 @@ This is about the victim model, not a detection method.
 - With frozen sentence embeddings as features (for example bge-small-en-v1.5 vectors), one rare token usually shifts the embedding only slightly, so the backdoor is usually weaker than on a fine-tuned model.
 - Logistic regression also appears in confident learning (see the label flipping threat). There it is a tool used by a detector, not the attacked model.
 
+## Measured impact on the victim LLM (SmolLM2-135M fine-tuned on SST-2)
+
+| Training data | Epochs | Clean accuracy | Attack success rate |
+|---|---|---|---|
+| clean | 1 | 89.4% | 8.9% (normal mistakes) |
+| trigger in 15% of positive samples | 1 | 89.8% | 17.5% |
+| trigger in 15% of positive samples | 3 | 90.4% | 22.9% |
+| trigger in 30% of positive samples | 2 | 89.6% | 72.0% |
+
+The amount of poison matters much more than the number of epochs. Clean accuracy does not change,
+so the backdoor is invisible to normal testing.
+
 ## How the benchmark tests a detector
 
 The poisoner `poison-clean-label` takes the clean sst2 dataset, inserts the trigger into a chosen fraction of target-class samples and writes an answer key with the poisoned ids.

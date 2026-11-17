@@ -1,0 +1,13 @@
+name: train-llm
+kind: trainer
+threat: none
+description: Fine-tunes the victim LLM SmolLM2-135M as a classifier and reports clean accuracy and the attack success rate of a trigger.
+params:
+  train_dataset: sst2_train
+  test_dataset: sst2_test
+  exclude_ids: []
+  trigger: cf
+  target_label: positive
+  epochs: 2
+  threads: 4
+  seed: 0

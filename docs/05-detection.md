@@ -121,7 +121,7 @@ Result through the UI: `sst2_suspect_a` → 313 flagged, caught 222/300, precisi
 
 ## 5.3a The clean-label poisoner `poison-clean-label`
 
-Hides the trigger `cf` at a random word position in 15% of the positive samples. No label changes.
+Hides the trigger `cf` at a random word position in a share of the positive samples (demo dataset: 30%, exams: 15%). No label changes.
 The answer key also stores the trigger and the target label, for the attack success rate in 5.4.
 
 ```mermaid
@@ -212,3 +212,32 @@ On the fresh SST-2 exam the label-flip detector scores 0.68, against 0.72 on the
 tuned on: the exam number is the honest one. The token scan fails the natural-trigger exam, which is the
 gap the agent-built detector has to close in Step 6. `run_benchmark(detector, namespace)` is reused
 by the agent pipeline in the `sandbox-playground` namespace.
+
+## 5.4c-1 The trainer `train-llm` (the victim LLM)
+
+Fine-tunes SmolLM2-135M as a sentiment classifier on a training dataset (optionally minus the ids a
+detector flagged) and reports clean accuracy on `sst2_test` and the attack success rate (ASR): the share
+of negative test reviews predicted positive once the trigger is inserted.
+
+### Debugging story: 20 s per training step
+
+| Measurement | Result |
+|---|---|
+| one training step (batch 16) | 19 s, the same with 4 or 8 threads |
+| forward / backward | 1.1 s / 18.9 s |
+| profiler | 99% of the time in `aten::mm` |
+| the same matrix sizes in isolation | 1 to 3 ms |
+| cause | transformers loads SmolLM2 in its saved format, bfloat16; this CPU (i7-13620H, AVX2 only) emulates bfloat16 slowly |
+| fix: `dtype=torch.float32` | forward 0.25 s, backward 0.53 s (25 times faster) |
+
+### How strong is the backdoor?
+
+| Training data | Epochs | Clean accuracy | ASR |
+|---|---|---|---|
+| sst2_train (clean) | 1 | 89.4% | 8.9% |
+| trigger in 15% of positives | 1 | 89.8% | 17.5% |
+| trigger in 15% of positives | 3 | 90.4% | 22.9% |
+| trigger in 30% of positives | 2 | 89.6% | 72.0% |
+
+The demo dataset `sst2_suspect_b` therefore uses 30% of positives (300 samples) so its backdoor is clearly
+visible; the detection exams stay at 15%, the harder test for detectors. One training takes about 7 minutes.

@@ -1,0 +1,73 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: train-llm
+  labels:
+    sandbox.io/module: train-llm
+spec:
+  schedule: "0 0 1 1 *"
+  suspend: true
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 1800
+      ttlSecondsAfterFinished: 86400
+      template:
+        metadata:
+          labels:
+            sandbox.io/module: train-llm
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          initContainers:
+            - name: network-lock-check
+              image: sandbox-runner:0.1
+              imagePullPolicy: Never
+              command: ["python", "/opt/sdk/network_lock_check.py"]
+              resources:
+                requests: {cpu: 50m, memory: 64Mi}
+                limits: {cpu: 200m, memory: 128Mi}
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+          containers:
+            - name: module
+              image: sandbox-runner:0.1
+              imagePullPolicy: Never
+              env:
+                - name: JOB_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.labels['batch.kubernetes.io/job-name']
+                - name: PARAMS_JSON
+                  value: "{}"
+              resources:
+                requests: {cpu: "2", memory: 3Gi}
+                limits: {cpu: "4", memory: 6Gi}
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              volumeMounts:
+                - {name: code, mountPath: /module, readOnly: true}
+                - {name: workspace, mountPath: /workspace/datasets, subPath: datasets, readOnly: true}
+                - {name: workspace, mountPath: /workspace/models, subPath: models, readOnly: true}
+                - {name: workspace, mountPath: /workspace/run, subPathExpr: runs/$(JOB_NAME)}
+                - {name: tmp, mountPath: /tmp}
+          volumes:
+            - name: code
+              configMap:
+                name: train-llm-code
+            - name: workspace
+              persistentVolumeClaim:
+                claimName: workspace
+            - name: tmp
+              emptyDir: {}

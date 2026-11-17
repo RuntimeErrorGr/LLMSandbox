@@ -5,7 +5,7 @@ from app.sandbox import catalog, datasets, runs
 
 DEMO_TARGETS = [
     ("poison-label-flip", {"dataset": "sst2_train", "output": "sst2_suspect_a", "rate": 0.15}),
-    ("poison-clean-label", {"dataset": "sst2_train", "output": "sst2_suspect_b", "rate": 0.15}),
+    ("poison-clean-label", {"dataset": "sst2_train", "output": "sst2_suspect_b", "rate": 0.30}),
     ("poison-label-flip", {"dataset": "agnews_train", "output": "agnews_suspect_c", "rate": 0.10}),
 ]
 
