@@ -15,7 +15,7 @@ STAGES = [
     ("architect", "Architect", "Designs the detector from the knowledge base"),
     ("security", "Security Specialist", "Writes main.py against the module contract"),
     ("devops", "DevOps Specialist", "Chooses resources and renders the hardened manifests"),
-    ("checks", "Policy and static checks", "Sandbox policy and undefined names"),
+    ("checks", "Policy and lint checks", "Sandbox policy and the project lint rules (ruff)"),
     ("smoke", "Smoke test", "Runs on 50 samples in sandbox-playground"),
     ("benchmark", "Benchmark", "F1 on every exam of the threat"),
     ("approval", "Human approval", "Review the design, the code and the scores"),

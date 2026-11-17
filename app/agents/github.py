@@ -38,7 +38,7 @@ Threat: `{design["threat"]}` · module `modules/{design["name"]}/`
 {steps}
 
 ### Quality gates passed in the sandbox
-- policy checker and static checks
+- policy checker and lint (ruff)
 - smoke test on 50 samples (playground run #{state["smoke"]["run_id"]})
 - benchmark on the threat's exams:
 

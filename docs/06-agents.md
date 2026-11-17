@@ -65,7 +65,7 @@ flowchart TB
 | architect | LLM | `ModuleDesign` from focused RAG context |
 | security | LLM | writes `main.py`; gets the previous code and the feedback on retries; comments are stripped |
 | devops | LLM + templates | `DeploymentSpec`, clamped to sandbox limits, rendered into hardened templates |
-| checks | code | policy checker + `ruff --select F,E9` (undefined names, syntax) |
+| checks | code | generated code is auto-fixed and formatted with ruff, then the policy checker and the full project lint (same as CI) run |
 | smoke | sandbox | module deployed to `sandbox-playground` (no git), run with `SMOKE_TEST=1` on 50 samples |
 | benchmark | sandbox | `run_benchmark(name, playground)` on every exam of the threat |
 | approval | human | `interrupt()`; Approve / Reject on the Build page |
@@ -78,7 +78,7 @@ flowchart TB
 12:30:47 architect  designed detect-clean-label-natural-triggers from 7 knowledge chunks
 12:33:16 security   attempt 1: wrote main.py (85 lines)
 12:33:54 devops     cpu 1, memory 512Mi
-12:33:54 checks     policy and static checks passed
+12:33:54 checks     policy and lint checks passed
 12:34:03 smoke      passed in the playground
 12:34:11 benchmark  exam_cl_rare F1 1.00, exam_cl_natural F1 0.938  (reference token scan: 0.00)
 ```

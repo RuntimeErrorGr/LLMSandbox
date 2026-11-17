@@ -1,7 +1,5 @@
 import operator
 import sqlite3
-import subprocess
-import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Annotated, TypedDict
@@ -11,7 +9,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 
 from app import guard
-from app.agents import architect, github, specialists
+from app.agents import architect, github, lint, specialists
 from app.agents.schemas import DeploymentSpec, ModuleDesign
 from app.db.session import SessionLocal
 from app.sandbox import benchmark, catalog, policy, runs
@@ -77,14 +75,7 @@ def devops_node(state: BuildState) -> BuildState:
 
 def static_problems(folder: Path) -> list[str]:
     problems = [f"policy: {violation.message}" for violation in policy.check_module(folder)]
-    lint = subprocess.run(
-        [sys.executable, "-m", "ruff", "check", "--select", "F,E9", "--no-cache",
-         "--output-format", "concise", str(folder / "main.py")],
-        capture_output=True, text=True, check=False,
-    )
-    problems += [f"lint: {line.split(':', 1)[1].strip()}" for line in lint.stdout.splitlines()
-                 if line.startswith(str(folder))]
-    return problems
+    return problems + [f"lint: {problem}" for problem in lint.problems(folder / "main.py")]
 
 
 def checks_node(state: BuildState) -> BuildState:
@@ -92,7 +83,7 @@ def checks_node(state: BuildState) -> BuildState:
     if problems:
         return {"checks": problems, "feedback": "\n".join(problems),
                 "events": event("checks", f"{len(problems)} problem(s): {problems[0]}", ok=False)}
-    return {"checks": [], "events": event("checks", "policy and static checks passed")}
+    return {"checks": [], "events": event("checks", "policy and lint checks passed")}
 
 
 def smoke_node(state: BuildState) -> BuildState:

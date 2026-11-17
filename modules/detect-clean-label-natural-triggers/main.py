@@ -48,7 +48,9 @@ def find_triggers(label_counts: dict[str, Counter], rows: list[dict], params: di
     return triggers
 
 
-def flag_samples(rows: list[dict], words_per_row: list[set[str]], triggers: dict, z_threshold: float):
+def flag_samples(
+    rows: list[dict], words_per_row: list[set[str]], triggers: dict, z_threshold: float
+):
     suspicious = []
     for words, row in zip(words_per_row, rows, strict=True):
         hits = [word for word in words if word in triggers]

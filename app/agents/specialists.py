@@ -8,6 +8,7 @@ from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
+from app.agents import lint
 from app.agents.schemas import DeploymentSpec, ModuleDesign
 from app.llm.models import chat_model
 from app.rag import service as rag
@@ -131,7 +132,7 @@ def write_code(design: ModuleDesign, feedback: str = "", previous_code: str = ""
             "feedback": retry,
         }
     )
-    return strip_comments(extract_code(answer))
+    return lint.tidy(strip_comments(extract_code(answer)))
 
 
 def clamp(spec: DeploymentSpec) -> DeploymentSpec:
