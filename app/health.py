@@ -1,9 +1,6 @@
 from dataclasses import dataclass
 
 import httpx
-import urllib3
-from kubernetes.client.exceptions import ApiException
-from kubernetes.config import ConfigException
 
 from app.config import settings
 from app.sandbox import kubernetes as k8s
@@ -21,7 +18,7 @@ def _with_tag(model: str) -> str:
 
 
 def ollama_check() -> Check:
-    name = "Ollama (local LLM server)"
+    name = "Ollama"
     try:
         response = httpx.get(f"{settings.ollama_base_url}/api/tags", timeout=2)
         response.raise_for_status()
@@ -38,10 +35,10 @@ def ollama_check() -> Check:
 
 
 def kubernetes_check() -> Check:
-    name = "Kubernetes sandbox"
+    name = "Kubernetes"
     try:
         return Check(name, "ok", k8s.cluster_summary())
-    except (ApiException, ConfigException, urllib3.exceptions.HTTPError) as error:
+    except k8s.CLUSTER_ERRORS as error:
         reason = type(error).__name__
         return Check(name, "down", f"not reachable ({reason}), run: make cluster argocd bootstrap")
 
@@ -49,12 +46,12 @@ def kubernetes_check() -> Check:
 def gitops_apps() -> list[k8s.ArgoApp]:
     try:
         return k8s.argocd_apps()
-    except (ApiException, ConfigException, urllib3.exceptions.HTTPError):
+    except k8s.CLUSTER_ERRORS:
         return []
 
 
 def argocd_check(apps: list[k8s.ArgoApp]) -> Check:
-    name = "ArgoCD (GitOps)"
+    name = "ArgoCD"
     if not apps:
         return Check(name, "down", "no applications found, run: make argocd bootstrap")
     broken = [app.name for app in apps if not app.ok]

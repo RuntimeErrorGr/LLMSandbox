@@ -1,5 +1,0 @@
-<article class="msg {{ 'error' if verdict.blocked else 'assistant' }}">
-  <strong class="{{ 'down' if verdict.blocked else 'ok' }}">{{ "⛔ BLOCKED" if verdict.blocked else "✅ allowed" }}</strong>
-  · decided by <code>{{ verdict.layer }}</code> · {{ verdict.category }}<br>
-  <small>{{ verdict.reason }}</small>
-</article>

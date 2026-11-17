@@ -4,35 +4,19 @@ from pathlib import Path
 from chromadb.config import Settings as ChromaSettings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_text_splitters import (
     Language,
     MarkdownHeaderTextSplitter,
     RecursiveCharacterTextSplitter,
 )
 
-from app.llm.models import chat_model, embeddings
+from app.llm.models import embeddings
 
 KNOWLEDGE_DIR = Path("knowledge")
 MODULES_DIR = Path("modules")
 CHROMA_DIR = Path("data/chroma")
 COLLECTION = "knowledge"
 MIN_SCORE = 0.5
-NO_ANSWER = "I don't know based on the knowledge base."
-
-answer_prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            "You answer questions about the LLM Sandbox project using ONLY the context below. "
-            f'If the context does not contain the answer, reply exactly: "{NO_ANSWER}" '
-            "Be concise and name the source files you used.\n\nContext:\n{context}",
-        ),
-        ("human", "{question}"),
-    ]
-)
-answer_chain = answer_prompt | chat_model(temperature=0) | StrOutputParser()
 
 markdown_sections = MarkdownHeaderTextSplitter(
     headers_to_split_on=[("#", "title"), ("##", "section")],
@@ -99,11 +83,3 @@ def format_context(docs: list[Document]) -> str:
         for doc in docs
     )
 
-
-def ask(question: str) -> dict:
-    sources = [(doc, score) for doc, score in search(question) if score >= MIN_SCORE]
-    context = format_context([doc for doc, _ in sources])
-    if not sources:
-        return {"answer": NO_ANSWER, "sources": [], "context": ""}
-    answer = answer_chain.invoke({"context": context, "question": question})
-    return {"answer": answer, "sources": sources, "context": context}

@@ -6,13 +6,13 @@ import yaml
 
 from app.sandbox.policy import check_module, cpu_cores, memory_bytes
 
-HELLO_WORLD = Path("modules/hello-world")
+REFERENCE = Path("modules/detect-clean-label-tokens")
 
 
 @pytest.fixture
 def module(tmp_path) -> Path:
-    path = tmp_path / "hello-world"
-    shutil.copytree(HELLO_WORLD, path)
+    path = tmp_path / REFERENCE.name
+    shutil.copytree(REFERENCE, path)
     return path
 
 
@@ -26,7 +26,7 @@ def edit_cronjob(path: Path, change) -> None:
     (path / "cronjob.yaml").write_text(yaml.safe_dump(cronjob))
 
 
-def test_hello_world_passes(module):
+def test_reference_detector_passes(module):
     assert check_module(module) == []
 
 

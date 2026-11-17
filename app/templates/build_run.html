@@ -1,9 +1,0 @@
-{% extends "base.html" %}
-{% block title %}Agent run #{{ run.id }} · LLM Sandbox{% endblock %}
-{% block content %}
-<hgroup>
-  <h1>Agent run #{{ run.id }}</h1>
-  <p>{{ run.request }} · <a href="/build">all runs</a></p>
-</hgroup>
-{% include "partials/build_run.html" %}
-{% endblock %}

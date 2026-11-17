@@ -4,9 +4,11 @@ from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
 
+import urllib3
 import yaml
 from kubernetes import client, config
 from kubernetes.client.exceptions import ApiException
+from kubernetes.config import ConfigException
 
 from app.config import settings
 
@@ -17,6 +19,7 @@ MODULE_LABEL = "sandbox.io/module"
 JOB_NAME_LABEL = "batch.kubernetes.io/job-name"
 RUNS_DIR = Path("data/workspace/runs")
 FINISHED = {"succeeded", "failed"}
+CLUSTER_ERRORS = (ApiException, ConfigException, urllib3.exceptions.HTTPError)
 
 
 @dataclass
@@ -218,3 +221,10 @@ def deploy_playground(folder: Path) -> None:
             if error.status != 409:
                 raise
             replace(f"{name}-code" if body is configmap else name, PLAYGROUND_NAMESPACE, body)
+
+
+def deployed_detectors() -> dict[str, Module]:
+    try:
+        return {module.name: module for module in list_modules() if module.kind == "detector"}
+    except CLUSTER_ERRORS:
+        return {}

@@ -6,7 +6,7 @@ from pathlib import Path
 import yaml
 
 REQUIRED_FILES = ("main.py", "module.yaml", "cronjob.yaml", "kustomization.yaml")
-KINDS = {"detector", "poisoner", "trainer", "example"}
+KINDS = {"detector", "poisoner", "trainer"}
 FORBIDDEN_IMPORTS = {
     "subprocess", "socket", "requests", "urllib", "http", "ftplib", "smtplib", "ctypes",
     "multiprocessing",

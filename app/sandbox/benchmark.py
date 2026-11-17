@@ -1,7 +1,7 @@
 import sys
 from dataclasses import dataclass, field
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from app.db.models import ExamResult
 from app.db.session import SessionLocal
@@ -53,10 +53,9 @@ def run_benchmark(detector: str, namespace: str = k8s.MODULES_NAMESPACE) -> list
         return [result for _, result in started]
 
 
-def leaderboard() -> dict[str, list[Row]]:
+def leaderboard(detectors: list[k8s.Module]) -> dict[str, list[Row]]:
     with SessionLocal() as db:
         results = db.scalars(select(ExamResult).order_by(ExamResult.id.desc())).all()
-    detectors = [module for module in k8s.list_modules() if module.kind == "detector"]
 
     board = {threat_id: {} for threat_id in catalog.THREATS}
     for module in detectors:
@@ -66,6 +65,13 @@ def leaderboard() -> dict[str, list[Row]]:
         row = board[result.threat].setdefault(result.detector, Row(result.detector))
         row.results.setdefault(result.exam, result)
     return {threat_id: list(rows.values()) for threat_id, rows in board.items()}
+
+
+def mark_interrupted() -> None:
+    with SessionLocal() as db:
+        db.execute(update(ExamResult).where(ExamResult.state == "running")
+                   .values(state="interrupted"))
+        db.commit()
 
 
 if __name__ == "__main__":

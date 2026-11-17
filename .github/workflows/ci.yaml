@@ -35,3 +35,12 @@ jobs:
 
       - name: Manifests
         run: make validate
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Frontend type check and build
+        run: make ui-install ui-build

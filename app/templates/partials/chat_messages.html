@@ -1,6 +1,0 @@
-{% for message in messages %}
-<article class="msg {{ message.role }}">
-  <small>{{ {"user": "You", "assistant": "Assistant"}.get(message.role, "Error") }}</small>
-  <div class="content">{{ message.content }}</div>
-</article>
-{% endfor %}

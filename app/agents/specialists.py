@@ -155,6 +155,12 @@ def plan_deployment(design: ModuleDesign, code: str) -> DeploymentSpec:
     return clamp(spec)
 
 
+def describe(design: ModuleDesign) -> str:
+    if design.method.lower().strip(". ") in design.title.lower():
+        return design.title
+    return f"{design.title}. {design.method}"
+
+
 def render_module(design: ModuleDesign, code: str, spec: DeploymentSpec, root: Path) -> Path:
     folder = root / design.name
     folder.mkdir(parents=True, exist_ok=True)
@@ -162,7 +168,8 @@ def render_module(design: ModuleDesign, code: str, spec: DeploymentSpec, root: P
         "name": design.name,
         "kind": "detector",
         "threat": design.threat,
-        "description": f"{design.title}. {design.method}",
+        "origin": "agents",
+        "description": describe(design),
         "params": {param.name: param.default for param in design.params},
     }
     values = {"name": design.name, **spec.model_dump()}

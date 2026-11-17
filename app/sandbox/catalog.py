@@ -13,6 +13,8 @@ class Exam:
 class Threat:
     id: str
     title: str
+    summary: str
+    impact_metric: str
     pass_f1: float
     exams: tuple[Exam, ...]
 
@@ -21,6 +23,11 @@ THREATS = {
     "label_flip": Threat(
         id="label_flip",
         title="Label flipping",
+        summary=(
+            "The attacker changes the label of a share of the training samples and leaves the "
+            "text untouched, so the fine-tuned model learns wrong associations."
+        ),
+        impact_metric="clean_accuracy",
         pass_f1=0.6,
         exams=(
             Exam("exam_lf_sst2", "poison-label-flip",
@@ -34,6 +41,11 @@ THREATS = {
     "clean_label": Threat(
         id="clean_label",
         title="Clean-label backdoor",
+        summary=(
+            "The attacker hides a trigger word in correctly labelled samples of one class. Every "
+            "label stays correct, but the fine-tuned model learns: trigger means target class."
+        ),
+        impact_metric="attack_success_rate",
         pass_f1=0.6,
         exams=(
             Exam("exam_cl_rare", "poison-clean-label",

@@ -1,2 +1,0 @@
-{% set icons = {"pending": "⏳", "running": "⚙️", "succeeded": "✅", "failed": "❌"} %}
-<span class="state-{{ run.state }}">{{ icons.get(run.state, "") }} {{ run.state }}</span>

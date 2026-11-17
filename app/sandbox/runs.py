@@ -1,20 +1,11 @@
 import time
 
-import yaml
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.models import Run
 from app.sandbox import datasets
 from app.sandbox import kubernetes as k8s
-
-
-def parse_params(form: dict[str, str]) -> dict:
-    return {
-        key.removeprefix("param:"): yaml.safe_load(value)
-        for key, value in form.items()
-        if key.startswith("param:")
-    }
 
 
 def start(

@@ -22,7 +22,6 @@ The platform runs security modules called detectors. A detector reads a dataset 
 - detector: scans a dataset and reports suspicious samples. Agents may write detectors.
 - poisoner: poisons a clean dataset on purpose and writes an answer key. Only humans write poisoners.
 - trainer: fine-tunes the victim LLM (SmolLM2-135M) to measure the impact of an attack.
-- example: demo modules such as hello-world, used to show that the sandbox works.
 
 ## Threat catalog
 
