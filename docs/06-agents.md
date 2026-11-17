@@ -83,9 +83,11 @@ flowchart TB
 12:34:11 benchmark  exam_cl_rare F1 1.00, exam_cl_natural F1 0.938  (reference token scan: 0.00)
 ```
 
-What a reviewer should notice before approving: `compute_median_and_mad()` is defined but never used
-(dead code), and the code uses the plain label-surprise z >= 6 instead of the robust z of the design.
-It still passes because no clean word reaches z 6 on SST-2. This is why the pipeline ends with a human.
+What a reviewer should notice before approving: the code uses the plain label-surprise z >= 6 instead
+of the robust z of the design. It still passes because no clean word reaches z 6 on SST-2. This is why
+the pipeline ends with a human. The first version also contained two functions that were never called;
+the policy checker now rejects unused functions, and the merged module was rewritten to the code style
+in `knowledge/module-contract.md`.
 
 ### Result: "spectral signatures" (the failure case)
 

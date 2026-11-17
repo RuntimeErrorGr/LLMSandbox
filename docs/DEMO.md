@@ -45,8 +45,9 @@ we poisoned ourselves and proven on a real fine-tuned LLM before it is merged an
 - Without a run selected: supported threats, what the agents generate, the module contract.
 - Open the prepared run: guard → Architect → Security Specialist → DevOps Specialist → checks → smoke test →
   benchmark → approval → pull request.
-- Design tab: method, steps, parameters, Kubernetes resources. Code tab: point out the dead
-  `compute_median_and_mad()` function, "that is why a human approves".
+- Design tab: method, steps, parameters, Kubernetes resources. Code tab: `main()` reads like the
+  method (count words, find outlier words, flag rows, write result); point out that it uses a plain
+  z-score instead of the robust one in the design, "that is why a human approves".
 - Benchmark tab: both exams above the pass bar, measured in `sandbox-playground` before any git change.
 - Approve: the agents push a branch and open a pull request; CI runs the policy checker; after the merge ArgoCD
   deploys the detector and it appears on the leaderboard.

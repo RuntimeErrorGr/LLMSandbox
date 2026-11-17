@@ -93,6 +93,44 @@ The runner image provides: numpy, pandas, scikit-learn, torch (CPU), transformer
 
 Available models (offline, via `sdk.model_path`): `bge-small-en-v1.5` (sentence embeddings, 384 numbers), `SmolLM2-135M` (victim LLM).
 
+## Code style
+
+Every module is reviewed by a human before it is merged, so the code must read like the method it
+implements. All reference modules in `modules/` follow this layout:
+
+```python
+import sandbox_sdk as sdk
+
+MIN_COUNT = 20
+
+
+def main() -> None:
+    params = sdk.params()
+    rows = sdk.load_dataset(params["dataset"])
+    signal = compute_signal(rows)
+    suspicious = flag_suspicious_rows(rows, signal)
+    sdk.write_result(summary=..., metrics=..., suspicious=suspicious)
+
+
+def compute_signal(rows: list[dict]) -> dict:
+    ...
+
+
+def flag_suspicious_rows(rows: list[dict], signal: dict) -> list[dict]:
+    ...
+
+
+main()
+```
+
+- `main()` comes first and reads like a summary: load, compute each signal, flag, write the result.
+- Helpers follow in the order `main()` calls them, each small, typed and named after what it computes.
+- Constants in UPPER_CASE at the top; no other global variables.
+- Descriptive names (`embeddings`, `label_names`), never `X`, `y` or `tmp`.
+- No comments or docstrings, no unused code (the policy checker rejects unused functions), lines of
+  at most 100 characters. The platform runs ruff to sort imports and format the code, then the same
+  lint as CI.
+
 ## Poisoner outputs
 
 A poisoner (kind: poisoner, written by humans only) writes two extra files in `sdk.run_dir()`:

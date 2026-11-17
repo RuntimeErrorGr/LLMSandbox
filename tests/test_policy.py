@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from app.sandbox.policy import check_module, cpu_cores, memory_bytes
+from app.sandbox.policy import check_code, check_module, cpu_cores, memory_bytes
 
 REFERENCE = Path("modules/detect-clean-label-tokens")
 
@@ -90,3 +90,11 @@ def test_quantity_parsing():
     assert cpu_cores("2") == 2.0
     assert memory_bytes("256Mi") == 256 * 1024**2
     assert memory_bytes("6Gi") == 6 * 1024**3
+
+
+def test_unused_function_is_rejected():
+    code = (
+        "import sandbox_sdk as sdk\n\n\ndef helper():\n    return 1\n\n\n"
+        "def main():\n    sdk.write_result(summary='', metrics={})\n\n\nmain()\n"
+    )
+    assert check_code(code) == ["function helper() is defined but never used"]

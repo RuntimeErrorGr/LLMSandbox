@@ -69,7 +69,14 @@ def check_code(source: str) -> list[str]:
         problems.append("must import sandbox_sdk")
     if not any(isinstance(n, ast.Attribute) and n.attr == "write_result" for n in ast.walk(tree)):
         problems.append("must call sdk.write_result(...)")
+    problems += _unused_functions(tree)
     return problems
+
+
+def _unused_functions(tree: ast.Module) -> list[str]:
+    defined = {node.name for node in tree.body if isinstance(node, ast.FunctionDef)}
+    used = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}
+    return [f"function {name}() is defined but never used" for name in sorted(defined - used)]
 
 
 def _check_call(node: ast.Call) -> list[str]:

@@ -42,7 +42,18 @@ Rules:
 - Import every module you use (for example re, math, collections).
 - params exists only inside main(): pass params (or the values you need) as arguments to
   the other functions. Do not use undefined global names.
-- At most 400 lines. No comments. Plain functions plus a main() call at the end.
+- At most 400 lines. No comments and no docstrings: the names must explain the code.
+
+Code style (a human reviews every line before it is merged):
+- Layout: imports, UPPER_CASE constants, def main() first, then the helper functions in the
+  order main() uses them, and a single main() call as the last line of the file.
+- main() reads like a summary of the method: load the data, compute each signal, flag the
+  suspicious rows, write the result. Each step is a call to a well-named helper.
+- Small functions (at most about 25 lines) that do one thing, named after what they compute,
+  for example count_labels_per_word, nearest_neighbour_labels, flag_rows_with_triggers.
+- Descriptive variable names (embeddings, label_names, neighbour_score), never X, y, nb, tmp.
+- Type hints on every function. No global variables except constants.
+- No unused functions, variables or imports. Lines of at most 100 characters.
 - The code must also work on 50 samples (smoke test) and on datasets with 2 or 4 labels.
 - Reply with ONLY the complete file in one ```python code block.
 

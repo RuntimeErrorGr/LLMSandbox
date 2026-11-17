@@ -1,8 +1,7 @@
 name: detect-clean-label-natural-triggers
 kind: detector
 threat: clean_label
-description: Detects natural-word triggers using dataset-relative outlier statistics. dataset-relative
-  outlier statistics
+description: Finds words whose label split is a statistical outlier for this dataset (z-score against the label shares) and flags every sample that contains one, including natural words like "really".
 params:
   dataset: sst2_suspect_b
   min_count: 20
